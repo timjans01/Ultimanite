@@ -32,3 +32,33 @@ enum EObjectFlags
     RF_Dynamic = 0x04000000,
     RF_WillBeLoaded = 0x08000000,
 };
+
+enum class ESpawnActorNameMode : uint8_t
+{
+    Required_Fatal,
+    Required_ErrorAndReturnNull,
+    Required_ReturnNull,
+    Requested
+};
+
+enum class ESpawnActorCollisionHandlingMethod : uint8_t
+{
+    Undefined = 0,
+    AlwaysSpawn = 1,
+    AdjustIfPossibleButAlwaysSpawn = 2,
+    AdjustIfPossibleButDontSpawnIfColliding = 3,
+    DontSpawnIfColliding = 4,
+    ESpawnActorCollisionHandlingMethod_MAX = 5
+};
+
+enum class EAthenaGamePhase : uint8_t
+{
+    None,
+    Setup,
+    Warmup,
+    Aircraft,
+    SafeZones,
+    EndGame,
+    Count,
+    EAthenaGamePhase_MAX
+};

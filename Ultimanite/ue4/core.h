@@ -1,26 +1,31 @@
 #pragma once
 
 #include <algorithm>
-#include <cctype>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <string_view>
+#include <fstream>
 
-#include "structs.h"
 #include "enums.h"
+#include "structs.h"
 
 inline TUObjectArray* ObjObjects;
 
 inline void* (*ProcessEvent)(UObject* Object, UObject* Function, void* Params);
 
-UObject* FindObjectById(uint32_t Id)
+inline UObject* (*GetFirstPlayerController)(UObject* World);
+
+inline UObject* (*SpawnActor)(UObject* World, UObject* Class, FTransform const* UserTransformPtr, const FActorSpawnParameters& SpawnParameters);
+
+inline UObject* (*StaticConstructObjectInternal)(void*, void*, void*, int, unsigned int, void*, bool, void*, bool);
+
+inline UObject* FindObjectById(uint32_t Id)
 {
 	auto Offset = 24 * Id;
 	return *(UObject**)(ObjObjects->Objects + Offset);
 }
 
-UObject* FindObject(std::wstring ObjectToFind)
+inline UObject* FindObject(std::wstring ObjectToFind)
 {
 	for (int i = 0; i < ObjObjects->NumElements; i++)
 	{
@@ -40,7 +45,7 @@ UObject* FindObject(std::wstring ObjectToFind)
 	return nullptr;
 }
 
-DWORD FindOffset(std::wstring OffsetToFind)
+inline DWORD FindOffset(std::wstring OffsetToFind)
 {
 	auto Object = FindObject(OffsetToFind);
 
@@ -50,4 +55,50 @@ DWORD FindOffset(std::wstring OffsetToFind)
 	}
 
 	return 0;
+}
+
+inline void DumpObjects()
+{
+	std::wofstream DumpFile("dump_objects_log.txt");
+
+	for (int i = 0; i < ObjObjects->NumElements; i++)
+	{
+		auto Object = FindObjectById(i);
+
+		if (Object == nullptr)
+		{
+			continue;
+		}
+
+		DumpFile << Object->GetFullName() << std::endl;
+	}
+}
+
+inline UObject* GetWorld()
+{
+	auto FortEngine = FindObject(L"FortEngine_");
+
+	struct Viewport
+	{
+		unsigned char Unk00[0x88];
+		UObject* World;
+	};
+
+	struct Engine
+	{
+		unsigned char Unk00[0x728];
+		Viewport* GameViewport;
+	};
+
+	return ((Engine*)FortEngine)->GameViewport->World;
+}
+
+inline UObject* SpawnActorEasy(UObject* WorldContextObject, UObject* Actor, FVector Location)
+{
+	FTransform Transform;
+	Transform.Translation = Location;
+	Transform.Scale3D = FVector{ 1, 1, 1 };
+	Transform.Rotation = FQuat{ 0, 0, 0, 0 };
+
+	return SpawnActor(WorldContextObject, Actor, &Transform, FActorSpawnParameters());
 }

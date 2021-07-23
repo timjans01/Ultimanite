@@ -166,6 +166,47 @@ struct UObject
 	}
 };
 
+struct FVector
+{
+	float X;
+	float Y;
+	float Z;
+};
+
+struct FVector2D
+{
+	float X;
+	float Y;
+
+	inline FVector2D()
+		: X(0), Y(0)
+	{
+	}
+
+	inline FVector2D(float x, float y)
+		: X(x),
+		Y(y)
+	{
+	}
+};
+
+struct alignas(16) FQuat
+{
+	float X;
+	float Y;
+	float Z;
+	float W;
+};
+
+struct alignas(16) FTransform
+{
+	FQuat Rotation;
+	FVector Translation;
+	char unknown1[0x4];
+	FVector Scale3D;
+	char unknown2[0x4];
+};
+
 struct FUObjectItem
 {
 	UObject* Object;
@@ -180,4 +221,36 @@ struct TUObjectArray
 	uint8_t* Objects;
 	uint32_t MaxElements;
 	uint32_t NumElements;
+};
+
+struct FActorSpawnParameters
+{
+	FActorSpawnParameters() : Name(), Template(nullptr), Owner(nullptr), Instigator(nullptr), OverrideLevel(nullptr),
+		SpawnCollisionHandlingOverride(), bRemoteOwned(0), bNoFail(0),
+		bDeferConstruction(0),
+		bAllowDuringConstructionScript(0),
+		NameMode(),
+		ObjectFlags()
+	{
+	}
+	;
+
+	FName Name;
+	UObject* Template;
+	UObject* Owner;
+	UObject* Instigator;
+	UObject* OverrideLevel;
+	ESpawnActorCollisionHandlingMethod SpawnCollisionHandlingOverride;
+
+private:
+	uint8_t bRemoteOwned : 1;
+
+public:
+	bool IsRemoteOwned() const { return bRemoteOwned; }
+
+	uint8_t bNoFail : 1;
+	uint8_t bDeferConstruction : 1;
+	uint8_t bAllowDuringConstructionScript : 1;
+	ESpawnActorNameMode NameMode;
+	EObjectFlags ObjectFlags;
 };

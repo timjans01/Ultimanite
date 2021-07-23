@@ -35,6 +35,9 @@
     <ClInclude Include="game\core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="game\sdk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

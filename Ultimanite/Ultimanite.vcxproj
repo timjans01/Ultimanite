@@ -159,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game\core.h" />
+    <ClInclude Include="game\sdk.h" />
     <ClInclude Include="ue4\core.h" />
     <ClInclude Include="ue4\enums.h" />
     <ClInclude Include="ue4\structs.h" />
