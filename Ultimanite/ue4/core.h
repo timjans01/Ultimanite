@@ -15,7 +15,7 @@ inline void* (*ProcessEvent)(UObject* Object, UObject* Function, void* Params);
 
 inline UObject* (*GetFirstPlayerController)(UObject* World);
 
-inline UObject* (*SpawnActor)(UObject* World, UObject* Class, FTransform const* UserTransformPtr, const FActorSpawnParameters& SpawnParameters);
+inline UObject* (*SpawnActor)(UObject* World, UObject* Class, FVector* Position, FRotator* Rotation, const FActorSpawnParameters& SpawnParameters);
 
 inline UObject* (*StaticConstructObjectInternal)(void*, void*, void*, int, unsigned int, void*, bool, void*, bool);
 
@@ -95,10 +95,6 @@ inline UObject* GetWorld()
 
 inline UObject* SpawnActorEasy(UObject* WorldContextObject, UObject* Actor, FVector Location)
 {
-	FTransform Transform;
-	Transform.Translation = Location;
-	Transform.Scale3D = FVector{ 1, 1, 1 };
-	Transform.Rotation = FQuat{ 0, 0, 0, 0 };
-
-	return SpawnActor(WorldContextObject, Actor, &Transform, FActorSpawnParameters());
+	FRotator Rotation{};
+	return SpawnActor(WorldContextObject, Actor, &Location, &Rotation, FActorSpawnParameters());
 }

@@ -166,6 +166,13 @@ struct UObject
 	}
 };
 
+struct FRotator
+{
+	float Pitch;
+	float Yaw;
+	float Roll;
+};
+
 struct FVector
 {
 	float X;
@@ -188,23 +195,6 @@ struct FVector2D
 		Y(y)
 	{
 	}
-};
-
-struct alignas(16) FQuat
-{
-	float X;
-	float Y;
-	float Z;
-	float W;
-};
-
-struct alignas(16) FTransform
-{
-	FQuat Rotation;
-	FVector Translation;
-	char unknown1[0x4];
-	FVector Scale3D;
-	char unknown2[0x4];
 };
 
 struct FUObjectItem

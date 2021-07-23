@@ -1,4 +1,16 @@
 #pragma once
+#include <string>
+
+using namespace std;
+
+namespace Globals
+{
+	UObject* Controller;
+	UObject* GameState;
+	UObject* GameMode;
+	UObject* CheatManager;
+	UObject* Pawn;
+}
 
 namespace Player
 {
@@ -41,5 +53,33 @@ namespace CheatManager
 		static UObject* Summon = FindObject(L"Function /Script/Engine.CheatManager.Summon");
 
 		ProcessEvent(InCheatManager, Summon, &InClassName);
+	}
+}
+
+namespace GameplayStatics
+{
+	static TArray<UObject*> GetAllActorsOfClass(wstring ClassFullName)
+	{
+		struct Parameters
+		{
+			UObject* World;
+			UObject* Class;
+			TArray<UObject*> Return;
+		};
+		Parameters parameters;
+		parameters.World = GetWorld();
+		parameters.Class = FindObject(ClassFullName);
+
+		ProcessEvent(FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics"), FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass"), &parameters);
+
+		return parameters.Return;
+	}
+}
+
+namespace AActor
+{
+	void Destroy(UObject* Target)
+	{
+		ProcessEvent(Target, FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor"), nullptr);
 	}
 }
