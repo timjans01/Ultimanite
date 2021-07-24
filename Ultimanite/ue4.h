@@ -9,6 +9,9 @@ inline UObject* (*SpawnActor)(UObject* World, UObject* Class, FVector* Position,
 
 inline UObject* (*StaticConstructObjectInternal)(void*, void*, void*, int, unsigned int, void*, bool, void*, bool);
 
+inline void (*TickPlayerInput)(const UObject* PlayerController, const float DeltaSeconds, const bool bGamePaused);
+
+
 inline UObject* FindObjectById(uint32_t Id)
 {
 	auto Offset = 24 * Id;

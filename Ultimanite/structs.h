@@ -206,7 +206,7 @@ struct UObject
 
 	bool isValid() const
 	{
-		return !!Util::IsBadReadPtr((void*)this);
+		return !Util::IsBadReadPtr((void*)this);
 	}
 
 
@@ -291,6 +291,11 @@ struct TUObjectArray
 	uint8_t* Objects;
 	uint32_t MaxElements;
 	uint32_t NumElements;
+};
+
+struct FKey {
+	struct FName KeyName; // 0x00(0x08)
+	char UnknownData_8[0x10]; // 0x08(0x10)
 };
 
 struct FActorSpawnParameters

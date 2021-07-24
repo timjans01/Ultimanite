@@ -10,8 +10,38 @@ namespace Globals
 	inline UObject* Pawn;
 }
 
+namespace Kismet
+{
+	static auto FStringToFName(FString inString) -> FName
+	{
+		static auto lib = FindObject(L"KismetStringLibrary /Script/Engine.Default__KismetStringLibrary");
+		static auto func = FindObject(L"Function /Script/Engine.KismetStringLibrary.Conv_StringToName");
+
+		struct Params
+		{
+			FString s;
+			FName ret;
+		};
+
+		Params params;
+		params.s = inString;
+
+		ProcessEvent(lib, func, &params);
+
+		return params.ret;
+	}
+}
+
+//TODO: Move to a class for multiplayer.
 namespace Player
 {
+	static void Jump(UObject* Pawn)
+	{
+		static UObject* Jump = FindObject(L"Function /Script/Engine.Character.Jump");
+
+		ProcessEvent(Pawn, Jump, nullptr);
+	}
+
 	static void SwitchLevel(UObject* InController, FString URL)
 	{
 		static UObject* SwitchLevel = FindObject(L"Function /Script/Engine.PlayerController.SwitchLevel");
@@ -32,6 +62,26 @@ namespace Player
 		static UObject* Possess = FindObject(L"Function /Script/Engine.Controller.Possess");
 
 		ProcessEvent(InController, Possess, &InPawn);
+	}
+}
+
+namespace Controller
+{
+	static auto GetPawn(UObject* Controller)
+	{
+		static UObject* K2_GetPawn = FindObject(
+			L"Function /Script/Engine.Controller.K2_GetPawn");
+
+		struct Params
+		{
+			UObject* ret;
+		};
+
+		Params params;
+
+		ProcessEvent(Controller, K2_GetPawn, &params);
+
+		return params.ret;
 	}
 }
 

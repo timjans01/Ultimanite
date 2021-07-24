@@ -3,9 +3,9 @@
 
 namespace Game
 {
-	bool bReady = false;
-	bool bJumpedFromAircraft = false;
-	
+	inline bool bReady = false;
+	inline bool bJumpedFromAircraft = false;
+
 	static void LoadMatch()
 	{
 		Globals::Controller = FindObject(L"Athena_PlayerController_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_PlayerController_C");
@@ -14,9 +14,13 @@ namespace Game
 
 		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{35000, 40562.594, 1300.150});
+		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ 35000, 40562.594, 1300.150 });
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
+
+		auto CurrentMovementStyle = (byte*)(uintptr_t(Globals::Pawn) + 0x7c4);
+
+		*CurrentMovementStyle = 3;
 
 		struct AthenaGameState
 		{
@@ -29,16 +33,17 @@ namespace Game
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 
 		Player::ServerReadyToStartMatch(Globals::Controller);
-		
+
 	}
 
 	static void JumpFromAircraft()
 	{
+		//Needs a fix!
 		auto bus = GameState::GetAircraft(Globals::GameState);
 
 		auto loc = AActor::GetLocation(bus);
 
-		if (Globals::Pawn && Globals::Pawn->isValid())
+		if (Globals::Pawn->isValid())
 		{
 			AActor::Destroy(Globals::Pawn);
 		}
@@ -47,40 +52,70 @@ namespace Game
 		Player::Possess(Globals::Controller, Globals::Pawn);
 	}
 
-	void* ProcessEventDetour(UObject* Object, UObject* Function, void* Params)
+	namespace Hooks
 	{
-		auto ObjectName = Object->GetFullName();
-		auto FunctionName = Function->GetFullName();
-
-		if (wcsstr(FunctionName.c_str(), L"ReadyToStartMatch"))
+		void* ProcessEventDetour(UObject* Object, UObject* Function, void* Params)
 		{
-			if (!bReady)
-			{
-				bReady = true;
+			auto ObjectName = Object->GetFullName();
+			auto FunctionName = Function->GetFullName();
 
-				// At this point, we are in the loading screen. Start loading into Athena_Terrain.
-				LoadMatch();
+			if (wcsstr(FunctionName.c_str(), L"ReadyToStartMatch"))
+			{
+				if (!bReady)
+				{
+					bReady = true;
+
+					// At this point, we are in the loading screen. Start loading into Athena_Terrain.
+					LoadMatch();
+				}
 			}
+
+			//Jumping from the aircraft.
+			if (wcsstr(FunctionName.c_str(), L"ServerAttemptAircraftJump") || wcsstr(FunctionName.c_str(), L"OnAircraftExitedDropZone"))
+			{
+				if (!bJumpedFromAircraft)
+				{
+					bJumpedFromAircraft = true;
+					JumpFromAircraft();
+				}
+			}
+
+			return ProcessEvent(Object, Function, Params);
 		}
 
-		//Jumping from the aircraft.
-		if (wcsstr(FunctionName.c_str(), L"ServerAttemptAircraftJump") || wcsstr(FunctionName.c_str(), L"OnAircraftExitedDropZone"))
+		void TickPlayerInputHook(UObject* APlayerController, const float DeltaSeconds, const bool bGamePaused) 
 		{
-			if (!bJumpedFromAircraft)
-			{
-				bJumpedFromAircraft = true;
-				JumpFromAircraft();
-			}
-		}
+			TickPlayerInput(APlayerController, DeltaSeconds, bGamePaused);
 
-		return ProcessEvent(Object, Function, Params);
+			auto pawn = Controller::GetPawn(APlayerController);
+
+			static bool bHasJumped;
+
+			if (GetAsyncKeyState(VK_SPACE))
+			{
+				if (!bHasJumped)
+				{
+					bHasJumped = !bHasJumped;
+					Player::Jump(Globals::Pawn);
+				}
+			}
+			else 
+			{
+				bHasJumped = false;
+			}
+
+		}
 	}
+
 
 	void Setup()
 	{
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());
-		DetourAttach(&(void*&)ProcessEvent, ProcessEventDetour);
+
+		DetourAttach(&(void*&)ProcessEvent, Hooks::ProcessEventDetour);
+		DetourAttach(&(void*&)TickPlayerInput, Hooks::TickPlayerInputHook);
+
 		DetourTransactionCommit();
 
 		auto PlayerController = GetFirstPlayerController(GetWorld());
