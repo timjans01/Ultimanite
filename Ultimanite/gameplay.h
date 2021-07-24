@@ -18,13 +18,13 @@ namespace Game
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
 
-		struct TestGameState
+		struct AthenaGameState
 		{
 			unsigned char Unk00[0x1cb0];
 			EAthenaGamePhase GamePhase;
 		};
 
-		((TestGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Warmup;
+		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Warmup;
 
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 
