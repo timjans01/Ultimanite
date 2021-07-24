@@ -136,15 +136,6 @@ namespace Game
 
 			Player::SetOwner(Globals::FortInventory, Globals::Controller);
 			Player::SetOwner(Globals::Quickbar, Globals::Controller);
-
-			/*
-			UObject* Pickaxe = CreateItem(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), 1);
-			UObject* FirstWeapon = CreateItem(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Assault/SemiAuto_High/WID_Assault_SemiAuto_VR_Ore_T06.WID_Assault_SemiAuto_VR_Ore_T06"), 1);
-
-			AddItemToInventory(Pickaxe, EFortQuickBars::Primary, 0);
-			AddItemToInventory(FirstWeapon, EFortQuickBars::Primary, 1);
-
-			UpdateInventory();*/
 			
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
 
