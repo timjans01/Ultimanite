@@ -180,11 +180,10 @@ namespace Game
 				}
 			}
 
-			/* TODO: Finish this.
+			/* Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
-				auto PlayerStart = GameplayStatics::GetAllActorsOfClass(L"Class /Script/Engine.PlayerStart");
-				Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"),);
+				Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
 			}*/
 
 			return ProcessEvent(Object, Function, Params);
