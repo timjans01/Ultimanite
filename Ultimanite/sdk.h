@@ -8,7 +8,27 @@ namespace Globals
 	inline UObject* GameMode;
 	inline UObject* CheatManager;
 	inline UObject* Pawn;
+	inline UObject* FortInventory;
+	inline UObject* Quickbar;
 }
+
+namespace Offsets
+{
+	DWORD ItemInstancesOffset;
+	DWORD ItemEntriesOffset;
+	DWORD ItemEntryOffset;
+	DWORD WorldInventoryOffset;
+	DWORD QuickBarOffset;
+	DWORD GamePhaseOffset;
+}
+
+enum class EFortQuickBars : uint8_t
+{
+	Primary,
+	Secondary,
+	Max_None,
+	EFortQuickBars_MAX,
+};
 
 namespace Kismet
 {
@@ -62,6 +82,66 @@ namespace Player
 		static UObject* Possess = FindObject(L"Function /Script/Engine.Controller.Possess");
 
 		ProcessEvent(InController, Possess, &InPawn);
+	}
+
+	static FGuid GetItemGuid(UObject* FortItem)
+	{
+		static UObject* GetItemGuid = FindObject(L"Function /Script/FortniteGame.FortItem.GetItemGuid");
+		FGuid ReturnValue;
+
+		ProcessEvent(FortItem, GetItemGuid, &ReturnValue);
+		return ReturnValue;
+	}
+
+	static void ServerAddItemInternal(UObject* Quickbars, FGuid Item, EFortQuickBars Quickbar, int Slot)
+	{
+		static UObject* ServerAddItemInternal = FindObject(L"Function /Script/FortniteGame.FortQuickBars.ServerAddItemInternal");
+
+		struct
+		{
+			FGuid Item;
+			EFortQuickBars Quickbar;
+			int Slot;
+		} Params;
+
+		Params.Item = Item;
+		Params.Quickbar = Quickbar;
+		Params.Slot = Slot;
+
+		ProcessEvent(Quickbars, ServerAddItemInternal, &Params);
+	}
+
+	static UObject* CreateTemporaryItemInstanceBP(UObject* ItemDefinition, int Count, int Level)
+	{
+		static UObject* CreateTemporaryItemInstanceBP = FindObject(L"Function /Script/FortniteGame.FortItemDefinition.CreateTemporaryItemInstanceBP");
+
+		struct
+		{
+			int Count;
+			int Level;
+			UObject* ReturnValue;
+		} Params;
+
+		Params.Count = Count;
+		Params.Level = Level;
+
+		ProcessEvent(ItemDefinition, CreateTemporaryItemInstanceBP, &Params);
+
+		return Params.ReturnValue;
+	}
+
+	static void SetOwningControllerForTemporaryItem(UObject* Item, UObject* Controller)
+	{
+		static UObject* SetOwningControllerForTemporaryItem = FindObject(L"Function /Script/FortniteGame.FortItem.SetOwningControllerForTemporaryItem");
+
+		ProcessEvent(Item, SetOwningControllerForTemporaryItem, &Controller);
+	}
+
+	static void SetOwner(UObject* TargetActor, UObject* NewOwner)
+	{
+		static UObject* SetOwner = FindObject(L"Function /Script/Engine.Actor.SetOwner");
+
+		ProcessEvent(TargetActor, SetOwner, &NewOwner);
 	}
 }
 

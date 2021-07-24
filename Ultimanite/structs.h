@@ -122,6 +122,14 @@ struct FString : private TArray<wchar_t>
 	}
 };
 
+struct FGuid
+{
+	int A;
+	int B;
+	int C;
+	int D;
+};
+
 struct FName;
 
 void (*FNameToString)(FName* pThis, FString& out);

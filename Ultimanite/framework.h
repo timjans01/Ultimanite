@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 #include <vector>
-#include <detours.h>
+#include <Detours.h>
 #include <algorithm>
 #include <iostream>
 #include <string>
