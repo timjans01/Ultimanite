@@ -20,6 +20,11 @@ namespace Offsets
 	DWORD WorldInventoryOffset;
 	DWORD QuickBarOffset;
 	DWORD GamePhaseOffset;
+	DWORD StrongMyHeroOffset;
+	DWORD CharacterPartsOffset;
+	DWORD AdditionalDataOffset;
+	DWORD PlayerStateOffset;
+	DWORD FortItemEntryOffset;
 }
 
 enum class EFortQuickBars : uint8_t
@@ -143,6 +148,22 @@ namespace Player
 		static UObject* SetOwner = FindObject(L"Function /Script/Engine.Actor.SetOwner");
 
 		ProcessEvent(TargetActor, SetOwner, &NewOwner);
+	}
+
+	static void ServerChoosePart(UObject* Target, TEnumAsByte<EFortCustomPartType> Type, UObject* ChosenCharacterPart)
+	{
+		static UObject* ServerChoosePart = FindObject(L"Function /Script/FortniteGame.FortPlayerPawn.ServerChoosePart");
+
+		struct
+		{
+			TEnumAsByte<EFortCustomPartType> Type;
+			UObject* ChosenCharacterPart;
+		} Params;
+
+		Params.Type = Type;
+		Params.ChosenCharacterPart = ChosenCharacterPart;
+
+		ProcessEvent(Target, ServerChoosePart, &Params);
 	}
 }
 

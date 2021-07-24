@@ -113,7 +113,30 @@ namespace Game
 
 		Player::ServerReadyToStartMatch(Globals::Controller);
 
+		auto StrongMyHero = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::StrongMyHeroOffset);
+		auto CharacterParts = *reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(StrongMyHero) + Offsets::CharacterPartsOffset);
 
+		std::vector<UObject*> CharacterPartsVector;
+
+		for (auto i = 0; i < CharacterParts.Num(); i++)
+			CharacterPartsVector.push_back(CharacterParts[i]);
+
+		for (auto i = 0; i < CharacterPartsVector.size(); i++)
+		{
+			auto AdditionalData = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(CharacterPartsVector[i]) + Offsets::AdditionalDataOffset);
+			if (AdditionalData->IsA(FindObject(L"Class /Script/FortniteGame.CustomCharacterHeadData")))
+			{
+				Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Head, CharacterPartsVector[i]);
+			}
+			else if (AdditionalData->IsA(FindObject(L"Class /Script/FortniteGame.CustomCharacterBodyPartData")))
+			{
+				Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Body, CharacterPartsVector[i]);
+			}
+			else if (AdditionalData->IsA(FindObject(L"Class /Script/FortniteGame.CustomCharacterHatData")))
+			{
+				Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Hat, CharacterPartsVector[i]);
+			}
+		}
 
 		// TODO: Move to ConsoleCommandHook
 
@@ -138,7 +161,10 @@ namespace Game
 			Player::SetOwner(Globals::Quickbar, Globals::Controller);
 			
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
-
+			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall"), EFortQuickBars::Secondary, 0, 1);
+			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
+			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
+			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
 
 		}
 	}
