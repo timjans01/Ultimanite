@@ -164,7 +164,7 @@
   <ItemGroup>
     <ClInclude Include="consts.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="game\gameplay.h" />
+    <ClInclude Include="gameplay.h" />
     <ClInclude Include="sdk.h" />
     <ClInclude Include="ue4\ue4.h" />
     <ClInclude Include="ue4\enums.h" />

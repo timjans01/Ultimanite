@@ -32,9 +32,6 @@
     <ClInclude Include="ue4\ue4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game\gameplay.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="consts.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -42,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gameplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
