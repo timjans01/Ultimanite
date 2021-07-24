@@ -1,7 +1,44 @@
 #pragma once
+#include "framework.h"
 
-#include <Windows.h>
-#include <iostream>
+class StructMaker
+{
+public:
+	void* structPtr = nullptr;
+private:
+	size_t totalSize = 0;
+	size_t padding = 0;
+
+	template <typename T>
+	void add(T Src)
+	{
+		constexpr auto Size = sizeof(T);
+
+		totalSize += Size;
+
+		structPtr = realloc(structPtr, totalSize);
+		if (structPtr) memcpy((void*)(reinterpret_cast<uintptr_t>(structPtr) + padding), &Src, Size);
+
+		//printf("Size: %d, totalSize: %d, paddint: %d\n", Size, totalSize, padding);
+
+		padding += Size;
+	}
+
+	template <class none = void>
+	constexpr void* Create() const
+	{
+		return (void*)((uintptr_t)structPtr + padding);
+	}
+
+public:
+	template <typename T, typename... Rest>
+	void* Create(T retValue, Rest ... params)
+	{
+		add(retValue);
+
+		return Create<>(params...);
+	}
+};
 
 template <class T>
 struct TArray
@@ -118,6 +155,8 @@ struct FName
 	}
 };
 
+void* (*ProcessEvent)(void* Object, void* Function, void* Params);
+
 struct UObject
 {
 	void** VTableObject;
@@ -164,6 +203,47 @@ struct UObject
 	{
 		return *reinterpret_cast<const FName*>(this + 0x18);
 	}
+
+	bool isValid() const
+	{
+		return !!Util::IsBadReadPtr((void*)this);
+	}
+
+
+	//TODO: fix return values!
+	template <typename ReturnType = void*, typename First, typename ... Rest>
+	inline ReturnType Call(UObject* function, First&& firstParam, Rest&&... params)
+	{
+		ReturnType RetInstance{};
+
+		auto caller = new StructMaker();
+
+		auto ret = *(ReturnType*)caller->Create(std::forward<First>(firstParam), std::forward<Rest>(params)...,
+		                                        RetInstance);
+
+		ProcessEvent(this, function, caller->structPtr);
+
+		return ret;
+	}
+};
+
+struct UField : UObject
+{
+    UField* Next;
+};
+
+struct UStruct : UField
+{
+    UStruct* Super; // 0x30
+    struct UProperty* Children; // 0x38
+    uint32_t Size; // 0x40
+    char pad_44[0x88 - 0x30 - 0x14];
+};
+struct UFunction : UStruct
+{
+    uint32_t FunctionFlags;
+    char pad[28]; // 0x8C
+    void* Func; // 0xB0
 };
 
 struct FRotator

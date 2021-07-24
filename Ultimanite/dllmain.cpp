@@ -1,26 +1,25 @@
-#include "util.h"
-#include "ue4/core.h"
-#include "game/core.h"
+#include "framework.h"
+#include "gameplay.h"
 
 void Setup()
 {
-	SetupConsole();
+	Util::SetupConsole();
 
 	auto ModuleBaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
 
 	// TODO: Move to patterns
-	auto ToStringAddress = ModuleBaseAddress + 0x13C37C0;
-	auto ObjectArrayAddress = ModuleBaseAddress + 0x4D01930;
-	auto GetFirstPlayerControllerAddress = ModuleBaseAddress + 0x25EE0F0;
-	auto SpawnActorAddress = ModuleBaseAddress + 0x22DDBF0;
-	auto StaticConstructObjectInternalAddress = ModuleBaseAddress + 0x156EC20;
+	auto ToStringAddress = ModuleBaseAddress + CONSTS::FNAME_TO_STRING_OFFSET;
+	auto ObjectArrayAddress = ModuleBaseAddress + CONSTS::OBJECTS_ARRAY_OFFSET;
+	auto GetFirstPlayerControllerAddress = ModuleBaseAddress + CONSTS::GET_FIRST_CONTROLLER_OFFSET;
+	auto SpawnActorAddress = ModuleBaseAddress + CONSTS::SPAWN_ACTOR_OFFSET;
+	auto StaticConstructObjectInternalAddress = ModuleBaseAddress + CONSTS::STATIC_CONSTRUCT_OBJECT_INTERNAL_OFFSET;
 
 	ObjObjects = decltype(ObjObjects)(ObjectArrayAddress);
 	FNameToString = decltype(FNameToString)(ToStringAddress);
 	GetFirstPlayerController = decltype(GetFirstPlayerController)(GetFirstPlayerControllerAddress);
 	SpawnActor = decltype(SpawnActor)(SpawnActorAddress);
 	StaticConstructObjectInternal = decltype(StaticConstructObjectInternal)(StaticConstructObjectInternalAddress);
-	ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[0x40]);
+	ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[CONSTS::PROCESS_EVENT_INDEX]);
 
 	Game::Setup();
 }

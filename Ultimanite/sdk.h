@@ -1,15 +1,13 @@
 #pragma once
-#include <string>
-
-using namespace std;
+#include "framework.h"
 
 namespace Globals
 {
-	UObject* Controller;
-	UObject* GameState;
-	UObject* GameMode;
-	UObject* CheatManager;
-	UObject* Pawn;
+	inline UObject* Controller;
+	inline UObject* GameState;
+	inline UObject* GameMode;
+	inline UObject* CheatManager;
+	inline UObject* Pawn;
 }
 
 namespace Player
@@ -23,7 +21,8 @@ namespace Player
 
 	static void ServerReadyToStartMatch(UObject* InController)
 	{
-		static UObject* ServerReadyToStartMatch = FindObject(L"Function /Script/FortniteGame.FortPlayerController.ServerReadyToStartMatch");
+		static UObject* ServerReadyToStartMatch = FindObject(
+			L"Function /Script/FortniteGame.FortPlayerController.ServerReadyToStartMatch");
 
 		ProcessEvent(InController, ServerReadyToStartMatch, nullptr);
 	}
@@ -38,9 +37,29 @@ namespace Player
 
 namespace GameState
 {
+	static UObject* GetAircraft(UObject* InGameState)
+	{
+		static UObject* GetAircraft = FindObject(
+			L"Function /Script/FortniteGame.FortGameStateAthena.GetAircraft");
+
+		struct Params
+		{
+			UObject* bus;
+			int i;
+		};
+
+		Params params;
+
+		params.i = 1;
+
+		ProcessEvent(InGameState, GetAircraft, &params);
+		return params.bus;
+	}
+
 	static void OnRep_GamePhase(UObject* InGameState, EAthenaGamePhase OldGamePhase)
 	{
-		static UObject* OnRep_GamePhase = FindObject(L"Function /Script/FortniteGame.FortGameStateAthena.OnRep_GamePhase");
+		static UObject* OnRep_GamePhase = FindObject(
+			L"Function /Script/FortniteGame.FortGameStateAthena.OnRep_GamePhase");
 
 		ProcessEvent(InGameState, OnRep_GamePhase, &OldGamePhase);
 	}
@@ -58,7 +77,7 @@ namespace CheatManager
 
 namespace GameplayStatics
 {
-	static TArray<UObject*> GetAllActorsOfClass(wstring ClassFullName)
+	static TArray<UObject*> GetAllActorsOfClass(std::wstring const& ClassFullName)
 	{
 		struct Parameters
 		{
@@ -66,11 +85,13 @@ namespace GameplayStatics
 			UObject* Class;
 			TArray<UObject*> Return;
 		};
+
 		Parameters parameters;
 		parameters.World = GetWorld();
 		parameters.Class = FindObject(ClassFullName);
 
-		ProcessEvent(FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics"), FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass"), &parameters);
+		ProcessEvent(FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics"),
+			FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass"), &parameters);
 
 		return parameters.Return;
 	}
@@ -78,7 +99,19 @@ namespace GameplayStatics
 
 namespace AActor
 {
-	void Destroy(UObject* Target)
+	static FVector GetLocation(UObject* Target)
+	{
+		struct
+		{
+			FVector ret;
+		} Params;
+
+		ProcessEvent(Target, FindObject(L"Function /Script/Engine.Actor.K2_GetActorLocation"), &Params);
+
+		return Params.ret;
+	}
+
+	static void Destroy(UObject* Target)
 	{
 		ProcessEvent(Target, FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor"), nullptr);
 	}

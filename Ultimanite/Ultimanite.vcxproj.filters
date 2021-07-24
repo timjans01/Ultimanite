@@ -29,13 +29,19 @@
     <ClInclude Include="util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ue4\core.h">
+    <ClInclude Include="ue4\ue4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game\core.h">
+    <ClInclude Include="game\gameplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game\sdk.h">
+    <ClInclude Include="consts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

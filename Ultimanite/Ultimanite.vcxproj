@@ -90,6 +90,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -107,6 +109,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,9 +162,11 @@
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="game\core.h" />
-    <ClInclude Include="game\sdk.h" />
-    <ClInclude Include="ue4\core.h" />
+    <ClInclude Include="consts.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="game\gameplay.h" />
+    <ClInclude Include="sdk.h" />
+    <ClInclude Include="ue4\ue4.h" />
     <ClInclude Include="ue4\enums.h" />
     <ClInclude Include="ue4\structs.h" />
     <ClInclude Include="util.h" />

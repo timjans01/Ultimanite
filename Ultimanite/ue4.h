@@ -1,17 +1,7 @@
 #pragma once
-
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <fstream>
-
-#include "enums.h"
-#include "structs.h"
+#include "framework.h"
 
 inline TUObjectArray* ObjObjects;
-
-inline void* (*ProcessEvent)(UObject* Object, UObject* Function, void* Params);
 
 inline UObject* (*GetFirstPlayerController)(UObject* World);
 
@@ -25,7 +15,8 @@ inline UObject* FindObjectById(uint32_t Id)
 	return *(UObject**)(ObjObjects->Objects + Offset);
 }
 
-inline UObject* FindObject(std::wstring ObjectToFind)
+template <typename T = UObject*>
+static T FindObject(std::wstring ObjectToFind)
 {
 	for (int i = 0; i < ObjObjects->NumElements; i++)
 	{
@@ -36,9 +27,10 @@ inline UObject* FindObject(std::wstring ObjectToFind)
 			continue;
 		}
 
+		//I am aware this is bad but we can't move to starts_with since the game itself is using an old std version.
 		if (wcsstr(Object->GetFullName().c_str(), ObjectToFind.c_str()))
 		{
-			return Object;
+			return (T)Object;
 		}
 	}
 
