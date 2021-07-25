@@ -320,6 +320,7 @@ namespace Game
 					AActor::Destroy(LODS[i]);
 				}
 
+				PlayerState::OnRep_SquadId();
 				auto NetDebugUi = FindObject(L"NetDebugUI_C /Engine/Transient.FortEngine_0.FortGameInstance_0.AthenaHUD_C_0.WidgetTree_0.NetDebugContainer.WidgetTree_0.NetDebugUI");
 				Widget::RemoveFromViewport(NetDebugUi);
 
@@ -403,6 +404,7 @@ namespace Game
 		Offsets::FullMapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapCircleBrush");
 		Offsets::FullMapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapNextCircleBrush");
 		Offsets::MinimapSafeZoneFinalPosBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneFinalPosBrush");
+
 
 		Globals::PawnClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 		Globals::BattleBusClass = FindObject(L"Class /Script/FortniteGame.FortAthenaAircraft");

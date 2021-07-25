@@ -270,6 +270,17 @@ namespace Player
 	}
 }
 
+namespace PlayerState
+{
+	static void OnRep_SquadId()
+	{
+		static UObject* OnRep_SquadID = FindObject(L"Function /Script/FortniteGame.FortPlayerStateAthena.OnRep_SquadId");
+
+		Globals::PlayerState = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::PlayerStateOffset);
+		ProcessEvent(Globals::PlayerState, OnRep_SquadID, nullptr);
+	};
+}
+
 namespace Pickup
 {
 	static void TossPickup(UObject* FortPickup, FVector FinalLocation, UObject* ItemOwner, int OverrideMaxStackCount, bool bToss)
