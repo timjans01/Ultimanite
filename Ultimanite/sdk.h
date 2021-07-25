@@ -46,6 +46,10 @@ namespace Offsets
 	DWORD FullMapCircleBrushOffset;
 	DWORD FullMapNextCircleBrushOffset;
 	DWORD MinimapSafeZoneFinalPosBrushOffset;
+	DWORD bReadyToStartMatchOffset;
+	DWORD bClientPawnIsLoadedOffset;
+	DWORD bHasClientFinishedLoadingOffset;
+	DWORD bHasServerFinishedLoadingOffset;
 }
 
 enum class EFortQuickBars : uint8_t
@@ -266,6 +270,15 @@ namespace Player
 		params.Slot = Slot;
 
 		ProcessEvent(Target, EmptySlot, &params);
+	}
+
+	static void ServerSetClientHasFinishedLoading(UObject* Target)
+	{
+		static UObject* ServerSetClientHasFinishedLoading = FindObject(L"Function /Script/FortniteGame.FortPlayerController.ServerSetClientHasFinishedLoading");
+
+		bool HasFinishedLoading = true;
+
+		ProcessEvent(Target, ServerSetClientHasFinishedLoading, &HasFinishedLoading);
 	}
 }
 
