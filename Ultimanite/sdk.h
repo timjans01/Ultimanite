@@ -38,6 +38,13 @@ namespace Offsets
 	DWORD bWantsToSprintOffset;
 	DWORD SlotsOffset;
 	DWORD PrimaryQuickbarOffset;
+	DWORD MinimapCircleBrushOffset;
+	DWORD MinimapSafeZoneBrushOffset;
+	DWORD MinimapBackgroundBrushOffset;
+	DWORD MinimapNextCircleBrushOffset;
+	DWORD FullMapCircleBrushOffset;
+	DWORD FullMapNextCircleBrushOffset;
+	DWORD MinimapSafeZoneFinalPosBrushOffset;
 }
 
 enum class EFortQuickBars : uint8_t
@@ -46,6 +53,13 @@ enum class EFortQuickBars : uint8_t
 	Secondary,
 	Max_None,
 	EFortQuickBars_MAX,
+};
+
+struct FSlateBrush
+{
+	// lets really hope this doesn't change on any updates lmao
+	unsigned char Unk00[0x48];
+	UObject* ObjectResource; // 0x08
 };
 
 namespace Kismet
@@ -67,6 +81,17 @@ namespace Kismet
 		ProcessEvent(lib, func, &params);
 
 		return params.ret;
+	}
+
+	static FSlateBrush NoResourceBrush()
+	{
+		static UObject* Default__WidgetBlueprintLibrary = FindObject(L"WidgetBlueprintLibrary /Script/UMG.Default__WidgetBlueprintLibrary");
+		static UObject* NoResourceBrush = FindObject(L"Function /Script/UMG.WidgetBlueprintLibrary.NoResourceBrush");
+
+		FSlateBrush ReturnValue;
+		ProcessEvent(Default__WidgetBlueprintLibrary, NoResourceBrush, &ReturnValue);
+
+		return ReturnValue;
 	}
 }
 

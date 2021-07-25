@@ -138,6 +138,18 @@ namespace Game
 
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 
+		FSlateBrush EmptyBrush = Kismet::NoResourceBrush();
+
+		reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapBackgroundBrushOffset))->ObjectResource = FindObject(L"Texture2D /Game/Athena/HUD/MiniMap/MiniMapAthena.MiniMapAthena");
+
+		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset)) = EmptyBrush; // MinimapCircleBrush
+		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
+		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapNextCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
+		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
+		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
+		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset)) = EmptyBrush; // MinimapCircleBrush
+
+
 		Player::ServerReadyToStartMatch(Globals::Controller);
 
 		auto StrongMyHero = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::StrongMyHeroOffset);
@@ -384,6 +396,14 @@ namespace Game
 		Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
 		Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
 		Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
+		Offsets::MinimapBackgroundBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapBackgroundBrush");
+		Offsets::MinimapSafeZoneBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneBrush");
+		Offsets::MinimapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapCircleBrush");
+		Offsets::MinimapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapNextCircleBrush");
+		Offsets::FullMapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapCircleBrush");
+		Offsets::FullMapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapNextCircleBrush");
+		Offsets::MinimapSafeZoneFinalPosBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneFinalPosBrush");
+
 		Globals::PawnClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 		Globals::BattleBusClass = FindObject(L"Class /Script/FortniteGame.FortAthenaAircraft");
 		
