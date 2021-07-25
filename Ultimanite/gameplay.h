@@ -254,8 +254,30 @@ namespace Game
 				auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemInstancesOffset);
 				auto RequestedGuid = ((ServerAttemptInventoryDropParams*)Params)->ItemGuid;
 
+				struct QuickbarSlot {
+					TArray<struct FGuid> Items;
+					bool bEnabled;
+					char Unk00[0x7];
+				};
+
+				auto QuickbarSlots = *reinterpret_cast<TArray<QuickbarSlot>*>(reinterpret_cast<uintptr_t>(Globals::Quickbar) + Offsets::PrimaryQuickbarOffset + Offsets::SlotsOffset);
+
+				for (int j = 0; j < QuickbarSlots.Num(); j++)
+				{
+					if (QuickbarSlots[j].Items.Data != NULL)
+					{
+						if (CompareGuids(QuickbarSlots[j].Items[0], RequestedGuid))
+						{
+							Player::EmptySlot(Globals::Quickbar, j);
+							UpdateInventory();
+						}
+					}
+				}
+
 				for (int i = 0; i < ItemInstances->Num(); i++)
 				{
+					
+
 					auto CurrentItemInstance = ItemInstances->operator[](i);
 					auto CurrentItemGuid = Player::GetGuid(CurrentItemInstance);
 
@@ -272,7 +294,6 @@ namespace Game
 							SpawnPickupAtLocation(*ItemDefinition, 1, loc);
 						}
 
-						// TODO: EmptySlot
 					}
 				}
 			}
@@ -361,9 +382,11 @@ namespace Game
 		Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
 		Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
 		Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
+		Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
+		Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
 		Globals::PawnClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 		Globals::BattleBusClass = FindObject(L"Class /Script/FortniteGame.FortAthenaAircraft");
-
+		
 		auto PlayerController = GetFirstPlayerController(GetWorld());
 
 		if (PlayerController)

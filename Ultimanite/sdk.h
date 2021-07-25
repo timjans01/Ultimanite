@@ -36,6 +36,8 @@ namespace Offsets
 	DWORD CharacterPartsOffset;
 	DWORD MovementStyleOffset;
 	DWORD bWantsToSprintOffset;
+	DWORD SlotsOffset;
+	DWORD PrimaryQuickbarOffset;
 }
 
 enum class EFortQuickBars : uint8_t
@@ -225,6 +227,21 @@ namespace Player
 		ProcessEvent(Target, GetItemGuid, &params);
 		
 		return params.ReturnValue;
+	}
+
+	static void EmptySlot(UObject* Target, int Slot)
+	{
+		static UObject* EmptySlot = FindObject(L"Function /Script/FortniteGame.FortQuickBars.EmptySlot");
+
+		struct {
+			EFortQuickBars QuickbarIndex;
+			int Slot;
+		} params;
+
+		params.QuickbarIndex = EFortQuickBars::Primary;
+		params.Slot = Slot;
+
+		ProcessEvent(Target, EmptySlot, &params);
 	}
 }
 
