@@ -75,13 +75,14 @@ namespace Game
 	static void AddItemToInventoryWithUpdate(UObject* ItemDef, EFortQuickBars QuickbarIndex, int Slot, int Count)
 	{
 		UObject* ItemInstance = CreateItem(ItemDef, Count);
+
 		AddItemToInventory(ItemInstance, QuickbarIndex, Slot);
 		UpdateInventory();
 	}
 
 	static void SpawnPickupAtLocation(UObject* ItemDefinition, int Count, FVector Location)
 	{
-		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location, {});
+		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location);
 
 		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::CountOffset));
 		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
@@ -242,15 +243,45 @@ namespace Game
 
 			if (wcsstr(FunctionName.c_str(), L"ServerAttemptInventoryDrop"))
 			{
+				struct ServerAttemptInventoryDropParams
+				{
+					FGuid ItemGuid;
+					int Count;
+				};
+
 				auto loc = AActor::GetLocation(Globals::Pawn);
-				SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_RC_Rocket_Athena_SR_T03"), 1, loc);
+
+				auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemInstancesOffset);
+				auto RequestedGuid = ((ServerAttemptInventoryDropParams*)Params)->ItemGuid;
+
+				for (int i = 0; i < ItemInstances->Num(); i++)
+				{
+					auto CurrentItemInstance = ItemInstances->operator[](i);
+					auto CurrentItemGuid = Player::GetGuid(CurrentItemInstance);
+
+					if (RequestedGuid.A == CurrentItemGuid.A &&
+						RequestedGuid.B == CurrentItemGuid.B &&
+						RequestedGuid.C == CurrentItemGuid.C &&
+						RequestedGuid.D == CurrentItemGuid.D)
+					{
+						// we know this weapon is the one we want, fetch item definition from ItemEntry
+						auto ItemDefinition = reinterpret_cast<UObject**>(__int64(CurrentItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
+
+						if (ItemDefinition)
+						{
+							SpawnPickupAtLocation(*ItemDefinition, 1, loc);
+						}
+
+						// TODO: EmptySlot
+					}
+				}
 			}
 
 			//Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
 				//Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
-				auto LODS = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
+				auto LODS = GameplayStatics::GetAllActorsOfClass(L"Class /Script/FortniteGame.FortHLODSMActor");
 				for (int i = 0; i < LODS.Num(); i++)
 				{
 					AActor::Destroy(LODS[i]);
