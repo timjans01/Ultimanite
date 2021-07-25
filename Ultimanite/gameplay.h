@@ -61,12 +61,12 @@ namespace Game
 			unsigned char Unk00[0xD0]; // Padding. TODO: DO DYNAMICALLY OR EVERYTHING WILL BREAK
 		};
 
-		auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemInstancesOffset);
+		Globals::ItemInstances = reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemInstancesOffset);
 		auto ItemEntries = reinterpret_cast<TArray<ItemEntrySize>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemEntriesOffset);
 
 		auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
 
-		ItemInstances->Add(FortItem); // First Offset: AFortInventory->Inventory // Second Offset: FFortItemList.ItemInstances
+		Globals::ItemInstances->Add(FortItem); // First Offset: AFortInventory->Inventory // Second Offset: FFortItemList.ItemInstances
 		ItemEntries->Add(*ItemEntry);
 
 		Player::ServerAddItemInternal(Globals::Quickbar, Player::GetItemGuid(FortItem), QuickbarIndex, Slot);
@@ -82,7 +82,29 @@ namespace Game
 	static void SpawnPickupAtLocation(UObject* ItemDef, int Count, FVector Location)
 	{
 		auto PickupClass = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location);
+	}
 
+	static bool CompareGuids(FGuid A, FGuid B)
+	{
+		if (A.A == B.A && A.B == B.B && A.C == B.C && A.D == B.D) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	static void EquipInventoryItem(FGuid Guid)
+	{
+		int ItemsNumber = Globals::ItemInstances->Num();
+		TArray<UObject*> ItemInstances = *Globals::ItemInstances;
+		for (int i = 0; i < ItemsNumber; i++)
+		{
+			if (CompareGuids(Player::GetGuid(ItemInstances[i]), Guid))
+			{
+				Player::EquipWeaponDefinition(Globals::Pawn, Player::GetItemDefinition(ItemInstances[i]), Guid);
+			}
+		}
 	}
 
 	static void LoadMatch()
@@ -202,6 +224,11 @@ namespace Game
 			{
 				Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
 			}*/
+
+			if (wcsstr(FunctionName.c_str(), L"ServerExecuteInventoryItem"))
+			{
+				EquipInventoryItem(*(FGuid*)Params);
+			}
 
 			return ProcessEvent(Object, Function, Params);
 		}

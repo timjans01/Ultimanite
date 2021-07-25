@@ -10,6 +10,7 @@ namespace Globals
 	inline UObject* Pawn;
 	inline UObject* FortInventory;
 	inline UObject* Quickbar;
+	inline TArray<UObject*>* ItemInstances;
 }
 
 namespace Offsets
@@ -164,6 +165,46 @@ namespace Player
 		Params.ChosenCharacterPart = ChosenCharacterPart;
 
 		ProcessEvent(Target, ServerChoosePart, &Params);
+	}
+
+	static FGuid GetGuid(UObject* Target)
+	{
+		static UObject* GetItemGuid = FindObject(L"Function /Script/FortniteGame.FortItem.GetItemGuid");
+
+		FGuid ReturnValue;
+
+		ProcessEvent(Target, GetItemGuid, &ReturnValue);
+
+		return ReturnValue;
+	}
+
+	static UObject* GetItemDefinition(UObject* Target)
+	{
+		static UObject* GetItemGuid = FindObject(L"Function /Script/FortniteGame.FortItem.GetItemDefinitionBP");
+
+		UObject* ReturnValue;
+
+		ProcessEvent(Target, GetItemGuid, &ReturnValue);
+
+		return ReturnValue;
+	}
+
+	static UObject* EquipWeaponDefinition(UObject* Target, UObject* ItemDefinition, FGuid ItemGuid)
+	{
+		static UObject* GetItemGuid = FindObject(L"Function /Script/FortniteGame.FortPawn.EquipWeaponDefinition");
+
+		struct {
+			UObject* ItemDefinition;
+			FGuid ItemGuid;
+			UObject* ReturnValue;
+		} params;
+
+		params.ItemDefinition = ItemDefinition;
+		params.ItemGuid = ItemGuid;
+		
+		ProcessEvent(Target, GetItemGuid, &params);
+		
+		return params.ReturnValue;
 	}
 }
 
