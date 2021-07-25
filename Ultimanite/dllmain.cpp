@@ -13,6 +13,7 @@ void Setup()
 	auto GetFirstPlayerControllerAddress = ModuleBaseAddress + CONSTS::GET_FIRST_CONTROLLER_OFFSET;
 	auto SpawnActorAddress = ModuleBaseAddress + CONSTS::SPAWN_ACTOR_OFFSET;
 	auto StaticConstructObjectInternalAddress = ModuleBaseAddress + CONSTS::STATIC_CONSTRUCT_OBJECT_INTERNAL_OFFSET;
+	auto StaticLoadObjectInternalAddress = ModuleBaseAddress + CONSTS::STATIC_LOAD_OBJECT_INTERNAL_OFFSET;
 	auto TickPlayerInputAddress = ModuleBaseAddress + CONSTS::TICK_PLAYER_INPUT_OFFSET;
 
 	ObjObjects = decltype(ObjObjects)(ObjectArrayAddress);
@@ -20,6 +21,7 @@ void Setup()
 	GetFirstPlayerController = decltype(GetFirstPlayerController)(GetFirstPlayerControllerAddress);
 	SpawnActor = decltype(SpawnActor)(SpawnActorAddress);
 	StaticConstructObjectInternal = decltype(StaticConstructObjectInternal)(StaticConstructObjectInternalAddress);
+	StaticLoadObjectInternal = decltype(StaticLoadObjectInternal)(StaticLoadObjectInternalAddress);
 	TickPlayerInput = decltype(TickPlayerInput)(TickPlayerInputAddress);
 	ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[CONSTS::PROCESS_EVENT_INDEX]);
 

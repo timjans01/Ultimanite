@@ -36,6 +36,7 @@ namespace Offsets
 	DWORD CharacterPartsOffset;
 	DWORD MovementStyleOffset;
 	DWORD bWantsToSprintOffset;
+	DWORD bInAircraftOffset;
 	DWORD SlotsOffset;
 	DWORD PrimaryQuickbarOffset;
 	DWORD MinimapCircleBrushOffset;
@@ -49,10 +50,7 @@ namespace Offsets
 
 enum class EFortQuickBars : uint8_t
 {
-	Primary,
-	Secondary,
-	Max_None,
-	EFortQuickBars_MAX,
+	Primary, Secondary, Max_None, EFortQuickBars_MAX,
 };
 
 struct FSlateBrush
@@ -125,8 +123,7 @@ namespace Player
 
 	static void ServerReadyToStartMatch(UObject* InController)
 	{
-		static UObject* ServerReadyToStartMatch = FindObject(
-			L"Function /Script/FortniteGame.FortPlayerController.ServerReadyToStartMatch");
+		static UObject* ServerReadyToStartMatch = FindObject(L"Function /Script/FortniteGame.FortPlayerController.ServerReadyToStartMatch");
 
 		ProcessEvent(InController, ServerReadyToStartMatch, nullptr);
 	}
@@ -240,7 +237,8 @@ namespace Player
 	{
 		static UObject* GetItemGuid = FindObject(L"Function /Script/FortniteGame.FortPawn.EquipWeaponDefinition");
 
-		struct {
+		struct
+		{
 			UObject* ItemDefinition;
 			FGuid ItemGuid;
 			UObject* ReturnValue;
@@ -248,9 +246,9 @@ namespace Player
 
 		params.ItemDefinition = ItemDefinition;
 		params.ItemGuid = ItemGuid;
-		
+
 		ProcessEvent(Target, GetItemGuid, &params);
-		
+
 		return params.ReturnValue;
 	}
 
@@ -258,7 +256,8 @@ namespace Player
 	{
 		static UObject* EmptySlot = FindObject(L"Function /Script/FortniteGame.FortQuickBars.EmptySlot");
 
-		struct {
+		struct
+		{
 			EFortQuickBars QuickbarIndex;
 			int Slot;
 		} params;
@@ -315,8 +314,7 @@ namespace Controller
 {
 	static auto GetPawn(UObject* Controller)
 	{
-		static UObject* K2_GetPawn = FindObject(
-			L"Function /Script/Engine.Controller.K2_GetPawn");
+		static UObject* K2_GetPawn = FindObject(L"Function /Script/Engine.Controller.K2_GetPawn");
 
 		struct Params
 		{
@@ -332,8 +330,7 @@ namespace Controller
 
 	static auto GetControlRotation(UObject* Target)
 	{
-		static UObject* GetControlRotation = FindObject(
-			L"Function /Script/Engine.Controller.GetControlRotation");
+		static UObject* GetControlRotation = FindObject(L"Function /Script/Engine.Controller.GetControlRotation");
 
 		FRotator ReturnValue;
 
@@ -347,8 +344,7 @@ namespace GameState
 {
 	static UObject* GetAircraft(UObject* InGameState)
 	{
-		static UObject* GetAircraft = FindObject(
-			L"Function /Script/FortniteGame.FortGameStateAthena.GetAircraft");
+		static UObject* GetAircraft = FindObject(L"Function /Script/FortniteGame.FortGameStateAthena.GetAircraft");
 
 		struct Params
 		{
@@ -366,8 +362,7 @@ namespace GameState
 
 	static void OnRep_GamePhase(UObject* InGameState, EAthenaGamePhase OldGamePhase)
 	{
-		static UObject* OnRep_GamePhase = FindObject(
-			L"Function /Script/FortniteGame.FortGameStateAthena.OnRep_GamePhase");
+		static UObject* OnRep_GamePhase = FindObject(L"Function /Script/FortniteGame.FortGameStateAthena.OnRep_GamePhase");
 
 		ProcessEvent(InGameState, OnRep_GamePhase, &OldGamePhase);
 	}
@@ -398,8 +393,7 @@ namespace GameplayStatics
 		parameters.World = GetWorld();
 		parameters.Class = Class;
 
-		ProcessEvent(Globals::GamePlayStatics,
-			FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass"), &parameters);
+		ProcessEvent(Globals::GamePlayStatics, FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass"), &parameters);
 
 		return parameters.Return;
 	}

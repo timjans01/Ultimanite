@@ -8,18 +8,18 @@ inline UObject* (*GetFirstPlayerController)(UObject* World);
 inline UObject* (*SpawnActor)(UObject* World, UObject* Class, FVector* Position, FRotator* Rotation, const FActorSpawnParameters& SpawnParameters);
 
 inline UObject* (*StaticConstructObjectInternal)(void*, void*, void*, int, unsigned int, void*, bool, void*, bool);
+static UObject* (*StaticLoadObjectInternal)(UObject* ObjectClass, UObject* InOuter, const TCHAR* InName, const TCHAR* Filename, uint32_t LoadFlags, UObject* Sandbox, bool bAllowObjectReconciliation);
 
 inline void (*TickPlayerInput)(const UObject* PlayerController, const float DeltaSeconds, const bool bGamePaused);
 
 
-inline UObject* FindObjectById(uint32_t Id)
+static UObject* FindObjectById(uint32_t Id)
 {
 	auto Offset = 24 * Id;
 	return *(UObject**)(ObjObjects->Objects + Offset);
 }
 
-template <typename T = UObject*>
-static T FindObject(std::wstring ObjectToFind)
+template <typename T = UObject*> static T FindObject(std::wstring ObjectToFind)
 {
 	for (int i = 0; i < ObjObjects->NumElements; i++)
 	{
@@ -40,7 +40,7 @@ static T FindObject(std::wstring ObjectToFind)
 	return nullptr;
 }
 
-inline DWORD FindOffset(std::wstring OffsetToFind)
+static DWORD FindOffset(std::wstring OffsetToFind)
 {
 	auto Object = FindObject(OffsetToFind);
 
@@ -69,7 +69,7 @@ inline void DumpObjects()
 	}
 }
 
-inline UObject* GetWorld()
+static UObject* GetWorld()
 {
 	auto FortEngine = FindObject(L"FortEngine_");
 
@@ -88,8 +88,13 @@ inline UObject* GetWorld()
 	return ((Engine*)FortEngine)->GameViewport->World;
 }
 
-inline UObject* SpawnActorEasy(UObject* WorldContextObject, UObject* Actor, FVector Location, FRotator ParamRotation)
+static UObject* SpawnActorEasy(UObject* WorldContextObject, UObject* Actor, FVector Location, FRotator ParamRotation)
 {
 	FRotator Rotation = ParamRotation;
 	return SpawnActor(WorldContextObject, Actor, &Location, &Rotation, FActorSpawnParameters());
+}
+
+static UObject* StaticLoadObjectEasy(UObject* ObjectClass, const wchar_t* InPath)
+{
+	return StaticLoadObjectInternal(ObjectClass, nullptr, InPath, nullptr, 0, nullptr, false);
 }

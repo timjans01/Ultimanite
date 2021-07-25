@@ -47,11 +47,17 @@ namespace Game
 
 	static void UpdateInventory()
 	{
-		ProcessEvent(Globals::Controller, FindObject(L"Function /Script/FortniteGame.FortPlayerController.HandleWorldInventoryLocalUpdate"), nullptr);
-		ProcessEvent(Globals::FortInventory, FindObject(L"Function /Script/FortniteGame.FortInventory.HandleInventoryLocalUpdate"), nullptr);
-		ProcessEvent(Globals::Controller, FindObject(L"Function /Script/FortniteGame.FortPlayerController.OnRep_QuickBar"), nullptr);
-		ProcessEvent(Globals::Quickbar, FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_SecondaryQuickBar"), nullptr);
-		ProcessEvent(Globals::Quickbar, FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_PrimaryQuickBar"), nullptr);
+		static auto HandleWorldInventoryLocalUpdate = FindObject(L"Function /Script/FortniteGame.FortPlayerController.HandleWorldInventoryLocalUpdate");
+		static auto HandleInventoryLocalUpdate = FindObject(L"Function /Script/FortniteGame.FortInventory.HandleInventoryLocalUpdate");
+		static auto OnRep_QuickBar = FindObject(L"Function /Script/FortniteGame.FortPlayerController.OnRep_QuickBar");
+		static auto OnRep_SecondaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_SecondaryQuickBar");
+		static auto OnRep_PrimaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_PrimaryQuickBar");
+
+		ProcessEvent(Globals::Controller, HandleWorldInventoryLocalUpdate, nullptr);
+		ProcessEvent(Globals::FortInventory, HandleInventoryLocalUpdate, nullptr);
+		ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
+		ProcessEvent(Globals::Quickbar, OnRep_SecondaryQuickBar, nullptr);
+		ProcessEvent(Globals::Quickbar, OnRep_PrimaryQuickBar, nullptr);
 	}
 
 	static void AddItemToInventory(UObject* FortItem, EFortQuickBars QuickbarIndex, int Slot)
@@ -86,7 +92,7 @@ namespace Game
 
 		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::CountOffset));
 		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
-	
+
 		*EntryCount = Count;
 		*EntryItemDefinition = ItemDefinition;
 
@@ -115,14 +121,13 @@ namespace Game
 
 	static void LoadMatch()
 	{
-		
 		Globals::Controller = GetFirstPlayerController(GetWorld());
 		Globals::GameState = FindObject(L"Athena_GameState_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameState_C");
 		Globals::GameMode = FindObject(L"Athena_GameMode_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameMode_C");
 
 		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ -124398, -103873.02, 3962.51 }, {});
+		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{-124398, -103873.02, 3962.51}, {});
 
 		Globals::GamePlayStatics = FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics");
 
@@ -140,7 +145,7 @@ namespace Game
 
 		FSlateBrush EmptyBrush = Kismet::NoResourceBrush();
 
-		reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapBackgroundBrushOffset))->ObjectResource = FindObject(L"Texture2D /Game/Athena/HUD/MiniMap/MiniMapAthena.MiniMapAthena");
+		reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapBackgroundBrushOffset))->ObjectResource = StaticLoadObjectEasy(FindObject(L"Class /Script/Engine.Texture2D"), L"/Game/Athena/HUD/MiniMap/MiniMapAthena.MiniMapAthena");
 
 		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset)) = EmptyBrush; // MinimapCircleBrush
 		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
@@ -149,7 +154,6 @@ namespace Game
 		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
 		*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset)) = EmptyBrush; // MinimapCircleBrush
 
-
 		Player::ServerReadyToStartMatch(Globals::Controller);
 
 		auto StrongMyHero = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::StrongMyHeroOffset);
@@ -157,8 +161,7 @@ namespace Game
 
 		std::vector<UObject*> CharacterPartsVector;
 
-		for (auto i = 0; i < CharacterParts.Num(); i++)
-			CharacterPartsVector.push_back(CharacterParts[i]);
+		for (auto i = 0; i < CharacterParts.Num(); i++) CharacterPartsVector.push_back(CharacterParts[i]);
 
 		for (auto i = 0; i < CharacterPartsVector.size(); i++)
 		{
@@ -190,7 +193,7 @@ namespace Game
 		};
 
 		Globals::FortInventory = reinterpret_cast<InventoryPointer*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::WorldInventoryOffset)->Inventory;
-		Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ 29481.783, 40562.594, 1237.150 }, {});
+		Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{29481.783, 40562.594, 1237.150}, {});
 
 		if (Globals::FortInventory && Globals::Quickbar)
 		{
@@ -198,7 +201,7 @@ namespace Game
 
 			Player::SetOwner(Globals::FortInventory, Globals::Controller);
 			Player::SetOwner(Globals::Quickbar, Globals::Controller);
-			
+
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
 
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall"), EFortQuickBars::Secondary, 0, 1);
@@ -209,19 +212,58 @@ namespace Game
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_RC_Rocket_Athena_SR_T03"), EFortQuickBars::Primary, 2, 1);
 		}
 
-		SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/VacuumTube/WID_Shotgun_VacuumTube_VR_Ore_T05.WID_Shotgun_VacuumTube_VR_Ore_T05"), 1, FVector{ 35000, 40562.594, 1300.150 });
+		SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/VacuumTube/WID_Shotgun_VacuumTube_VR_Ore_T05.WID_Shotgun_VacuumTube_VR_Ore_T05"), 1, FVector{35000, 40562.594, 1300.150});
 	}
 
-	static void Tick()
+	static void HandleInventoryDrop(void* Params)
 	{
-		auto CurrentMovementStyle = reinterpret_cast<byte*>(reinterpret_cast<uintptr_t>(Globals::Pawn) + Offsets::MovementStyleOffset);
-		auto bWantsToSprint = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bWantsToSprintOffset);
+		struct ServerAttemptInventoryDropParams
+		{
+			FGuid ItemGuid;
+			int Count;
+		};
 
-		if (*bWantsToSprint) {
-			*CurrentMovementStyle = 3;
+		auto loc = AActor::GetLocation(Globals::Pawn);
+
+		auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemInstancesOffset);
+		auto RequestedGuid = ((ServerAttemptInventoryDropParams*)Params)->ItemGuid;
+
+		struct QuickbarSlot
+		{
+			TArray<struct FGuid> Items;
+			bool bEnabled;
+			char Unk00[0x7];
+		};
+
+		auto QuickbarSlots = *reinterpret_cast<TArray<QuickbarSlot>*>(reinterpret_cast<uintptr_t>(Globals::Quickbar) + Offsets::PrimaryQuickbarOffset + Offsets::SlotsOffset);
+
+		for (int j = 0; j < QuickbarSlots.Num(); j++)
+		{
+			if (QuickbarSlots[j].Items.Data != NULL)
+			{
+				if (CompareGuids(QuickbarSlots[j].Items[0], RequestedGuid))
+				{
+					Player::EmptySlot(Globals::Quickbar, j);
+					UpdateInventory();
+				}
+			}
 		}
-		else {
-			*CurrentMovementStyle = 0;
+
+		for (int i = 0; i < ItemInstances->Num(); i++)
+		{
+			auto CurrentItemInstance = ItemInstances->operator[](i);
+			auto CurrentItemGuid = Player::GetGuid(CurrentItemInstance);
+
+			if (RequestedGuid.A == CurrentItemGuid.A && RequestedGuid.B == CurrentItemGuid.B && RequestedGuid.C == CurrentItemGuid.C && RequestedGuid.D == CurrentItemGuid.D)
+			{
+				// we know this weapon is the one we want, fetch item definition from ItemEntry
+				auto ItemDefinition = reinterpret_cast<UObject**>(__int64(CurrentItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
+
+				if (ItemDefinition)
+				{
+					SpawnPickupAtLocation(*ItemDefinition, 1, loc);
+				}
+			}
 		}
 	}
 
@@ -255,65 +297,15 @@ namespace Game
 
 			if (wcsstr(FunctionName.c_str(), L"ServerAttemptInventoryDrop"))
 			{
-				struct ServerAttemptInventoryDropParams
-				{
-					FGuid ItemGuid;
-					int Count;
-				};
-
-				auto loc = AActor::GetLocation(Globals::Pawn);
-
-				auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemInstancesOffset);
-				auto RequestedGuid = ((ServerAttemptInventoryDropParams*)Params)->ItemGuid;
-
-				struct QuickbarSlot {
-					TArray<struct FGuid> Items;
-					bool bEnabled;
-					char Unk00[0x7];
-				};
-
-				auto QuickbarSlots = *reinterpret_cast<TArray<QuickbarSlot>*>(reinterpret_cast<uintptr_t>(Globals::Quickbar) + Offsets::PrimaryQuickbarOffset + Offsets::SlotsOffset);
-
-				for (int j = 0; j < QuickbarSlots.Num(); j++)
-				{
-					if (QuickbarSlots[j].Items.Data != NULL)
-					{
-						if (CompareGuids(QuickbarSlots[j].Items[0], RequestedGuid))
-						{
-							Player::EmptySlot(Globals::Quickbar, j);
-							UpdateInventory();
-						}
-					}
-				}
-
-				for (int i = 0; i < ItemInstances->Num(); i++)
-				{
-					
-
-					auto CurrentItemInstance = ItemInstances->operator[](i);
-					auto CurrentItemGuid = Player::GetGuid(CurrentItemInstance);
-
-					if (RequestedGuid.A == CurrentItemGuid.A &&
-						RequestedGuid.B == CurrentItemGuid.B &&
-						RequestedGuid.C == CurrentItemGuid.C &&
-						RequestedGuid.D == CurrentItemGuid.D)
-					{
-						// we know this weapon is the one we want, fetch item definition from ItemEntry
-						auto ItemDefinition = reinterpret_cast<UObject**>(__int64(CurrentItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
-
-						if (ItemDefinition)
-						{
-							SpawnPickupAtLocation(*ItemDefinition, 1, loc);
-						}
-
-					}
-				}
+				HandleInventoryDrop(Params);
 			}
 
-			//Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
+
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
+				//Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
 				//Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
+
 				auto LODS = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
 				for (int i = 0; i < LODS.Num(); i++)
 				{
@@ -332,38 +324,49 @@ namespace Game
 				EquipInventoryItem(*(FGuid*)Params);
 			}
 
-			if (wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
-			{
-				Tick();
-			}
-
 			return ProcessEvent(Object, Function, Params);
 		}
 
-		void TickPlayerInputHook(UObject* APlayerController, const float DeltaSeconds, const bool bGamePaused) 
+		void TickPlayerInputHook(UObject* APlayerController, const float DeltaSeconds, const bool bGamePaused)
 		{
 			TickPlayerInput(APlayerController, DeltaSeconds, bGamePaused);
 
-			auto pawn = Controller::GetPawn(APlayerController);
+			//auto pawn = Controller::GetPawn(APlayerController);
 
-			static bool bHasJumped;
-
-			if (GetAsyncKeyState(VK_SPACE))
+			if (bDroppedLoadingScreen)
 			{
-				if (!bHasJumped)
+				auto CurrentMovementStyle = reinterpret_cast<byte*>(reinterpret_cast<uintptr_t>(Globals::Pawn) + Offsets::MovementStyleOffset);
+				auto bWantsToSprint = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bWantsToSprintOffset);
+
+				if (*bWantsToSprint && !GetAsyncKeyState(VK_LBUTTON) && !GetAsyncKeyState(VK_RBUTTON))
 				{
-					bHasJumped = !bHasJumped;
-					if (Player::CanJump(Globals::Pawn))
+					*CurrentMovementStyle = 3;
+				}
+				else
+				{
+					*CurrentMovementStyle = 0;
+				}
+
+				auto bInAircraft = reinterpret_cast<bool*>(__int64(Globals::GameState) + __int64(Offsets::bInAircraftOffset));
+
+				static bool bHasJumped;
+
+				if (!*bInAircraft && GetAsyncKeyState(VK_SPACE))
+				{
+					if (!bHasJumped)
 					{
-						Player::Jump(Globals::Pawn);
+						bHasJumped = !bHasJumped;
+						if (Player::CanJump(Globals::Pawn))
+						{
+							Player::Jump(Globals::Pawn);
+						}
 					}
 				}
+				else
+				{
+					bHasJumped = false;
+				}
 			}
-			else 
-			{
-				bHasJumped = false;
-			}
-
 		}
 	}
 
@@ -395,6 +398,7 @@ namespace Game
 		Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
 		Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
 		Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
+		Offsets::bInAircraftOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerStateAthena.bInAircraft");
 		Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
 		Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
 		Offsets::MinimapBackgroundBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapBackgroundBrush");
@@ -408,7 +412,7 @@ namespace Game
 
 		Globals::PawnClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 		Globals::BattleBusClass = FindObject(L"Class /Script/FortniteGame.FortAthenaAircraft");
-		
+
 		auto PlayerController = GetFirstPlayerController(GetWorld());
 
 		if (PlayerController)
