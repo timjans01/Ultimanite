@@ -88,8 +88,8 @@ inline UObject* GetWorld()
 	return ((Engine*)FortEngine)->GameViewport->World;
 }
 
-inline UObject* SpawnActorEasy(UObject* WorldContextObject, UObject* Actor, FVector Location)
+inline UObject* SpawnActorEasy(UObject* WorldContextObject, UObject* Actor, FVector Location, FRotator ParamRotation)
 {
-	FRotator Rotation{};
+	FRotator Rotation = ParamRotation;
 	return SpawnActor(WorldContextObject, Actor, &Location, &Rotation, FActorSpawnParameters());
 }

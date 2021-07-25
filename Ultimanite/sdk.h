@@ -8,10 +8,13 @@ namespace Globals
 	inline UObject* GameMode;
 	inline UObject* CheatManager;
 	inline UObject* Pawn;
+	inline UObject* PawnClass;
+	inline UObject* BattleBusClass;
 	inline UObject* PlayerState;
 	inline UObject* FortInventory;
 	inline UObject* Quickbar;
 	inline TArray<UObject*>* ItemInstances;
+	inline UObject* GamePlayStatics;
 }
 
 namespace Offsets
@@ -75,6 +78,16 @@ namespace Player
 		ProcessEvent(Pawn, Jump, nullptr);
 	}
 
+	static bool CanJump(UObject* Pawn)
+	{
+		static UObject* Jump = FindObject(L"Function /Script/Engine.Character.CanJump");
+
+		bool ReturnValue;
+
+		ProcessEvent(Pawn, Jump, &ReturnValue);
+
+		return ReturnValue;
+	}
 
 	static void SwitchLevel(UObject* InController, FString URL)
 	{
@@ -263,6 +276,18 @@ namespace Controller
 
 		return params.ret;
 	}
+
+	static auto GetControlRotation(UObject* Target)
+	{
+		static UObject* GetControlRotation = FindObject(
+			L"Function /Script/Engine.Controller.GetControlRotation");
+
+		FRotator ReturnValue;
+
+		ProcessEvent(Target, GetControlRotation, &ReturnValue);
+
+		return ReturnValue;
+	}
 }
 
 namespace GameState
@@ -274,8 +299,8 @@ namespace GameState
 
 		struct Params
 		{
-			UObject* bus;
 			int i;
+			UObject* bus;
 		};
 
 		Params params;
@@ -307,7 +332,7 @@ namespace CheatManager
 
 namespace GameplayStatics
 {
-	static TArray<UObject*> GetAllActorsOfClass(std::wstring const& ClassFullName)
+	static TArray<UObject*> GetAllActorsOfClass(UObject* Class)
 	{
 		struct Parameters
 		{
@@ -318,9 +343,9 @@ namespace GameplayStatics
 
 		Parameters parameters;
 		parameters.World = GetWorld();
-		parameters.Class = FindObject(ClassFullName);
+		parameters.Class = Class;
 
-		ProcessEvent(FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics"),
+		ProcessEvent(Globals::GamePlayStatics,
 			FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass"), &parameters);
 
 		return parameters.Return;

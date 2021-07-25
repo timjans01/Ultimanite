@@ -9,8 +9,7 @@ namespace Game
 
 	static void JumpFromAircraft()
 	{
-		//Needs a fix!
-		auto bus = GameState::GetAircraft(Globals::GameState);
+		auto bus = GameplayStatics::GetAllActorsOfClass(Globals::BattleBusClass)[0];
 
 		auto loc = AActor::GetLocation(bus);
 
@@ -19,7 +18,7 @@ namespace Game
 			AActor::Destroy(Globals::Pawn);
 		}
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), loc);
+		Globals::Pawn = SpawnActorEasy(GetWorld(), Globals::PawnClass, loc, Controller::GetControlRotation(Globals::Controller)); //TODO: FIX ROTATION
 		Player::Possess(Globals::Controller, Globals::Pawn);
 	}
 
@@ -82,7 +81,7 @@ namespace Game
 
 	static void SpawnPickupAtLocation(UObject* ItemDefinition, int Count, FVector Location)
 	{
-		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location);
+		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location, {});
 
 		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::CountOffset));
 		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
@@ -122,7 +121,9 @@ namespace Game
 
 		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ -124398, -103873.02, 3962.51 });
+		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ -124398, -103873.02, 3962.51 }, {});
+
+		Globals::GamePlayStatics = FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics");
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
 
@@ -132,7 +133,7 @@ namespace Game
 			EAthenaGamePhase GamePhase;
 		};
 
-		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Aircraft;
+		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Warmup;
 
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 
@@ -176,7 +177,7 @@ namespace Game
 		};
 
 		Globals::FortInventory = reinterpret_cast<InventoryPointer*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::WorldInventoryOffset)->Inventory;
-		Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ 29481.783, 40562.594, 1237.150 });
+		Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ 29481.783, 40562.594, 1237.150 }, {});
 
 		if (Globals::FortInventory && Globals::Quickbar)
 		{
@@ -249,7 +250,7 @@ namespace Game
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
 				//Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
-				auto LODS = GameplayStatics::GetAllActorsOfClass(L"Class /Script/FortniteGame.FortHLODSMActor");
+				auto LODS = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
 				for (int i = 0; i < LODS.Num(); i++)
 				{
 					AActor::Destroy(LODS[i]);
@@ -278,7 +279,7 @@ namespace Game
 		{
 			TickPlayerInput(APlayerController, DeltaSeconds, bGamePaused);
 
-			auto pawn = Controller::GetPawn(APlayerController);
+			/*auto pawn = Controller::GetPawn(APlayerController);
 
 			static bool bHasJumped;
 
@@ -287,13 +288,16 @@ namespace Game
 				if (!bHasJumped)
 				{
 					bHasJumped = !bHasJumped;
-					Player::Jump(Globals::Pawn);
+					if (Player::CanJump(Globals::Pawn))
+					{
+						Player::Jump(Globals::Pawn);
+					}
 				}
 			}
 			else 
 			{
 				bHasJumped = false;
-			}
+			}*/
 
 		}
 	}
@@ -326,6 +330,8 @@ namespace Game
 		Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
 		Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
 		Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
+		Globals::PawnClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
+		Globals::BattleBusClass = FindObject(L"Class /Script/FortniteGame.FortAthenaAircraft");
 
 		auto PlayerController = GetFirstPlayerController(GetWorld());
 
