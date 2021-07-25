@@ -18,7 +18,7 @@ namespace Game
 			AActor::Destroy(Globals::Pawn);
 		}
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), Globals::PawnClass, loc, Controller::GetControlRotation(Globals::Controller)); //TODO: FIX ROTATION
+		Globals::Pawn = SpawnActorEasy(GetWorld(), Globals::PawnClass, loc, {}); //TODO: FIX ROTATION
 		Player::Possess(Globals::Controller, Globals::Pawn);
 	}
 
