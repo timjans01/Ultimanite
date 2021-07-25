@@ -31,6 +31,8 @@ namespace Offsets
 	DWORD CountOffset;
 	DWORD ItemDefinitionOffset;
 	DWORD CharacterPartsOffset;
+	DWORD MovementStyleOffset;
+	DWORD bWantsToSprintOffset;
 }
 
 enum class EFortQuickBars : uint8_t
@@ -342,5 +344,15 @@ namespace AActor
 	static void Destroy(UObject* Target)
 	{
 		ProcessEvent(Target, FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor"), nullptr);
+	}
+}
+
+namespace Widget
+{
+	static void RemoveFromViewport(UObject* Target)
+	{
+		static UObject* RemoveFromViewport = FindObject(L"Function /Script/UMG.UserWidget.RemoveFromViewport");
+
+		ProcessEvent(Target, RemoveFromViewport, nullptr);
 	}
 }

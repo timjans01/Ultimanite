@@ -5,6 +5,7 @@ namespace Game
 {
 	inline bool bReady = false;
 	inline bool bJumpedFromAircraft = false;
+	inline bool bDroppedLoadingScreen = false;
 
 	static void JumpFromAircraft()
 	{
@@ -125,10 +126,6 @@ namespace Game
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
 
-		auto CurrentMovementStyle = (byte*)(uintptr_t(Globals::Pawn) + 0x7c4);
-
-		*CurrentMovementStyle = 3;
-
 		struct AthenaGameState
 		{
 			unsigned char Unk00[0x1cb0];
@@ -201,6 +198,19 @@ namespace Game
 		SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/VacuumTube/WID_Shotgun_VacuumTube_VR_Ore_T05.WID_Shotgun_VacuumTube_VR_Ore_T05"), 1, FVector{ 35000, 40562.594, 1300.150 });
 	}
 
+	static void Tick()
+	{
+		auto CurrentMovementStyle = reinterpret_cast<byte*>(reinterpret_cast<uintptr_t>(Globals::Pawn) + Offsets::MovementStyleOffset);
+		auto bWantsToSprint = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bWantsToSprintOffset);
+
+		if (*bWantsToSprint) {
+			*CurrentMovementStyle = 3;
+		}
+		else {
+			*CurrentMovementStyle = 0;
+		}
+	}
+
 	namespace Hooks
 	{
 		void* ProcessEventDetour(UObject* Object, UObject* Function, void* Params)
@@ -235,15 +245,30 @@ namespace Game
 				SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_RC_Rocket_Athena_SR_T03"), 1, loc);
 			}
 
-			/* Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
+			//Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
-				Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
-			}*/
+				//Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
+				auto LODS = GameplayStatics::GetAllActorsOfClass(L"Class /Script/FortniteGame.FortHLODSMActor");
+				for (int i = 0; i < LODS.Num(); i++)
+				{
+					AActor::Destroy(LODS[i]);
+				}
+
+				auto NetDebugUi = FindObject(L"NetDebugUI_C /Engine/Transient.FortEngine_0.FortGameInstance_0.AthenaHUD_C_0.WidgetTree_0.NetDebugContainer.WidgetTree_0.NetDebugUI");
+				Widget::RemoveFromViewport(NetDebugUi);
+
+				bDroppedLoadingScreen = true;
+			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerExecuteInventoryItem"))
 			{
 				EquipInventoryItem(*(FGuid*)Params);
+			}
+
+			if (wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
+			{
+				Tick();
 			}
 
 			return ProcessEvent(Object, Function, Params);
@@ -299,6 +324,8 @@ namespace Game
 		Offsets::PrimaryPickupItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPickup.PrimaryPickupItemEntry");
 		Offsets::CountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortItemEntry.Count");
 		Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
+		Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
+		Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
 
 		auto PlayerController = GetFirstPlayerController(GetWorld());
 
