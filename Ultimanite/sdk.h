@@ -8,6 +8,7 @@ namespace Globals
 	inline UObject* GameMode;
 	inline UObject* CheatManager;
 	inline UObject* Pawn;
+	inline UObject* PlayerState;
 	inline UObject* FortInventory;
 	inline UObject* Quickbar;
 	inline TArray<UObject*>* ItemInstances;
@@ -22,10 +23,14 @@ namespace Offsets
 	DWORD QuickBarOffset;
 	DWORD GamePhaseOffset;
 	DWORD StrongMyHeroOffset;
-	DWORD CharacterPartsOffset;
+	DWORD HeroCharacterPartsOffset;
 	DWORD AdditionalDataOffset;
 	DWORD PlayerStateOffset;
 	DWORD FortItemEntryOffset;
+	DWORD PrimaryPickupItemEntryOffset;
+	DWORD CountOffset;
+	DWORD ItemDefinitionOffset;
+	DWORD CharacterPartsOffset;
 }
 
 enum class EFortQuickBars : uint8_t
@@ -205,6 +210,36 @@ namespace Player
 		ProcessEvent(Target, GetItemGuid, &params);
 		
 		return params.ReturnValue;
+	}
+}
+
+namespace Pickup
+{
+	static void TossPickup(UObject* FortPickup, FVector FinalLocation, UObject* ItemOwner, int OverrideMaxStackCount, bool bToss)
+	{
+		static UObject* TossPickup = FindObject(L"Function /Script/FortniteGame.FortPickup.TossPickup");
+
+		struct
+		{
+			FVector FinalLocation;
+			UObject* ItemOwner;
+			int OverrideMaxStackCount;
+			bool bToss;
+		} Params;
+
+		Params.FinalLocation = FinalLocation;
+		Params.ItemOwner = ItemOwner;
+		Params.OverrideMaxStackCount = OverrideMaxStackCount;
+		Params.bToss = bToss;
+
+		ProcessEvent(FortPickup, TossPickup, &Params);
+	}
+
+	static void OnRep_PrimaryPickupItemEntry(UObject* FortPickup)
+	{
+		static UObject* OnRep_PrimaryPickupItemEntry = FindObject(L"Function /Script/FortniteGame.FortPickup.OnRep_PrimaryPickupItemEntry");
+
+		ProcessEvent(FortPickup, OnRep_PrimaryPickupItemEntry, nullptr);
 	}
 }
 

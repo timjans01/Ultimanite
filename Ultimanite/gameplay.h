@@ -79,25 +79,30 @@ namespace Game
 		UpdateInventory();
 	}
 
-	static void SpawnPickupAtLocation(UObject* ItemDef, int Count, FVector Location)
+	static void SpawnPickupAtLocation(UObject* ItemDefinition, int Count, FVector Location)
 	{
-		auto PickupClass = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location);
+		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location);
+
+		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::CountOffset));
+		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
+	
+		*EntryCount = Count;
+		*EntryItemDefinition = ItemDefinition;
+
+		Pickup::OnRep_PrimaryPickupItemEntry(FortPickupAthena);
+		Pickup::TossPickup(FortPickupAthena, Location, Globals::Pawn, 6, true);
 	}
 
 	static bool CompareGuids(FGuid A, FGuid B)
 	{
-		if (A.A == B.A && A.B == B.B && A.C == B.C && A.D == B.D) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return A.A == B.A && A.B == B.B && A.C == B.C && A.D == B.D;
 	}
 
 	static void EquipInventoryItem(FGuid Guid)
 	{
 		int ItemsNumber = Globals::ItemInstances->Num();
 		TArray<UObject*> ItemInstances = *Globals::ItemInstances;
+
 		for (int i = 0; i < ItemsNumber; i++)
 		{
 			if (CompareGuids(Player::GetGuid(ItemInstances[i]), Guid))
@@ -115,7 +120,7 @@ namespace Game
 
 		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ 35000, 40562.594, 1300.150 });
+		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ -124398, -103873.02, 3962.51 });
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
 
@@ -129,7 +134,7 @@ namespace Game
 			EAthenaGamePhase GamePhase;
 		};
 
-		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Warmup;
+		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Aircraft;
 
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 
@@ -183,12 +188,14 @@ namespace Game
 			Player::SetOwner(Globals::Quickbar, Globals::Controller);
 			
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
+
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall"), EFortQuickBars::Secondary, 0, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
-
 		}
+
+		SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/VacuumTube/WID_Shotgun_VacuumTube_VR_Ore_T05.WID_Shotgun_VacuumTube_VR_Ore_T05"), 1, FVector{ 35000, 40562.594, 1300.150 });
 	}
 
 	namespace Hooks
@@ -280,6 +287,9 @@ namespace Game
 		Offsets::AdditionalDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.CustomCharacterPart.AdditionalData");
 		Offsets::PlayerStateOffset = FindOffset(L"ObjectProperty /Script/Engine.Controller.PlayerState");
 		Offsets::FortItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
+		Offsets::PrimaryPickupItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPickup.PrimaryPickupItemEntry");
+		Offsets::CountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortItemEntry.Count");
+		Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
 
 		auto PlayerController = GetFirstPlayerController(GetWorld());
 
