@@ -15,6 +15,7 @@ void Setup()
 	auto StaticConstructObjectInternalAddress = ModuleBaseAddress + CONSTS::STATIC_CONSTRUCT_OBJECT_INTERNAL_OFFSET;
 	auto StaticLoadObjectInternalAddress = ModuleBaseAddress + CONSTS::STATIC_LOAD_OBJECT_INTERNAL_OFFSET;
 	auto TickPlayerInputAddress = ModuleBaseAddress + CONSTS::TICK_PLAYER_INPUT_OFFSET;
+	auto FreeInternalAddress = ModuleBaseAddress + CONSTS::FREE_INTERNAL_OFFSET;
 
 	ObjObjects = decltype(ObjObjects)(ObjectArrayAddress);
 	FNameToString = decltype(FNameToString)(ToStringAddress);
@@ -23,6 +24,7 @@ void Setup()
 	StaticConstructObjectInternal = decltype(StaticConstructObjectInternal)(StaticConstructObjectInternalAddress);
 	StaticLoadObjectInternal = decltype(StaticLoadObjectInternal)(StaticLoadObjectInternalAddress);
 	TickPlayerInput = decltype(TickPlayerInput)(TickPlayerInputAddress);
+	FreeInternal = decltype(FreeInternal)(FreeInternalAddress);
 	ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[CONSTS::PROCESS_EVENT_INDEX]);
 
 	Game::Setup();

@@ -1,6 +1,8 @@
 #pragma once
 #include "framework.h"
 
+//#define PE_LOGGING
+
 namespace Game
 {
 	inline bool bReady = false;
@@ -139,11 +141,16 @@ namespace Game
 			EAthenaGamePhase GamePhase;
 		};
 
-		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Warmup;
+		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Aircraft;
 
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 
 		Player::ServerReadyToStartMatch(Globals::Controller);
+
+		//i hate bit fields
+		auto bInfiniteAmmoBitField = (uint8_t*)(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bInfiniteAmmo);
+
+		bInfiniteAmmoBitField[0] = 1; //bInfiniteAmmo = true
 
 		auto StrongMyHero = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::StrongMyHeroOffset);
 		auto CharacterParts = *reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(StrongMyHero) + Offsets::CharacterPartsOffset);
@@ -256,6 +263,22 @@ namespace Game
 		}
 	}
 
+	static void HandleGuidedMissle(UObject* Object)
+	{
+		if (bDroppedLoadingScreen)
+		{
+			if (wcsstr(Object->GetName().c_str(), L"B_RCRocket_Launcher_Athena_C_0"))
+			{
+				auto loc = AActor::GetLocation(Globals::Pawn);
+				loc.X += 200;
+
+				auto rocket = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Weapons/Abilities/RCRocket/B_PrjPawn_Athena_RCRocket.B_PrjPawn_Athena_RCRocket_C"), loc, {});
+
+				Player::SetupRemoteControlPawn(rocket);
+			}
+		}
+	}
+
 	namespace Hooks
 	{
 		void* ProcessEventDetour(UObject* Object, UObject* Function, void* Params)
@@ -288,7 +311,6 @@ namespace Game
 			{
 				HandleInventoryDrop(Params);
 			}
-
 
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
@@ -335,7 +357,20 @@ namespace Game
 				EquipInventoryItem(*(FGuid*)Params);
 			}
 
-			return ProcessEvent(Object, Function, Params);
+			if (wcsstr(FunctionName.c_str(), L"OnPlayWeaponFireFX"))
+			{
+				if (GetAsyncKeyState(VK_LBUTTON)) HandleGuidedMissle(Object);
+			}
+
+			#ifdef PE_LOGGING
+			//LMFAO
+			if (FunctionName != L"EvaluateGraphExposedInputs" && FunctionName != L"ReceiveTick" && FunctionName != L"Tick" && FunctionName != L"OnSubmixEnvelope" && FunctionName != L"OnSubmixSpectralAnalysis" && FunctionName != L"OnMouse" && FunctionName != L"GetSubtitleVisibility" && FunctionName != L"Pulse" && FunctionName != L"BlueprintUpdateAnimation" && FunctionName != L"BlueprintPostEvaluateAnimation" && FunctionName != L"BlueprintModifyCamera" && FunctionName != L"BlueprintModifyPostProcess" && FunctionName != L"Loop Animation Curve" && FunctionName != L"GetValue" && FunctionName != L"OnSignificantTick" && FunctionName != L"ReceiveDrawHUD" && FunctionName != L"Chime Visual" && FunctionName != L"UpdateTime" && FunctionName != L"GetMutatorByClass" && FunctionName != L"OnUpdateDirectionalLightForTimeOfDay" && FunctionName != L"UpdatePreviousPositionAndVelocity" && FunctionName != L"IsCachedIsProjectileWeapon" && FunctionName != L"LockOn" && FunctionName != L"GetAbilityTargetingLevel" && FunctionName != L"ReadyToEndMatch")
+			{
+				printf("[Object]: %ls [Function]: %ls\n", ObjectName.c_str(), FunctionName.c_str());
+			}
+			#endif
+
+		out: return ProcessEvent(Object, Function, Params);
 		}
 
 		void TickPlayerInputHook(UObject* APlayerController, const float DeltaSeconds, const bool bGamePaused)
@@ -377,6 +412,12 @@ namespace Game
 				{
 					bHasJumped = false;
 				}
+
+				if (GetAsyncKeyState(VK_F7))
+				{
+					Sleep(1000);
+					//DEBUG CODE
+				}
 			}
 		}
 	}
@@ -392,37 +433,7 @@ namespace Game
 
 		DetourTransactionCommit();
 
-		// Setup offsets
-		Offsets::ItemInstancesOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortItemList.ItemInstances");
-		Offsets::ItemEntriesOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortItemList.ReplicatedEntries");
-		Offsets::ItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
-		Offsets::WorldInventoryOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.WorldInventory");
-		Offsets::QuickBarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.QuickBars");
-		Offsets::GamePhaseOffset = FindOffset(L"EnumProperty /Script/FortniteGame.FortGameStateAthena.GamePhase");
-		Offsets::StrongMyHeroOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerControllerAthena.StrongMyHero");
-		Offsets::CharacterPartsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortHero.CharacterParts");
-		Offsets::AdditionalDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.CustomCharacterPart.AdditionalData");
-		Offsets::PlayerStateOffset = FindOffset(L"ObjectProperty /Script/Engine.Controller.PlayerState");
-		Offsets::FortItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
-		Offsets::PrimaryPickupItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPickup.PrimaryPickupItemEntry");
-		Offsets::CountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortItemEntry.Count");
-		Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
-		Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
-		Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
-		Offsets::bInAircraftOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerStateAthena.bInAircraft");
-		Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
-		Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
-		Offsets::MinimapBackgroundBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapBackgroundBrush");
-		Offsets::MinimapSafeZoneBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneBrush");
-		Offsets::MinimapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapCircleBrush");
-		Offsets::MinimapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapNextCircleBrush");
-		Offsets::FullMapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapCircleBrush");
-		Offsets::FullMapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapNextCircleBrush");
-		Offsets::MinimapSafeZoneFinalPosBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneFinalPosBrush");
-		Offsets::bReadyToStartMatchOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bReadyToStartMatch");
-		Offsets::bClientPawnIsLoadedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bClientPawnIsLoaded");
-		Offsets::bHasClientFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasClientFinishedLoading");
-		Offsets::bHasServerFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasServerFinishedLoading");
+		SetupOffsets();
 
 		Globals::PawnClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C");
 		Globals::BattleBusClass = FindObject(L"Class /Script/FortniteGame.FortAthenaAircraft");

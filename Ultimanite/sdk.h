@@ -37,6 +37,8 @@ namespace Offsets
 	DWORD MovementStyleOffset;
 	DWORD bWantsToSprintOffset;
 	DWORD bInAircraftOffset;
+	DWORD bInfiniteAmmo;
+	DWORD CurrentWeapon;
 	DWORD SlotsOffset;
 	DWORD PrimaryQuickbarOffset;
 	DWORD MinimapCircleBrushOffset;
@@ -50,6 +52,42 @@ namespace Offsets
 	DWORD bClientPawnIsLoadedOffset;
 	DWORD bHasClientFinishedLoadingOffset;
 	DWORD bHasServerFinishedLoadingOffset;
+}
+
+static void SetupOffsets()
+{
+	Offsets::ItemInstancesOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortItemList.ItemInstances");
+	Offsets::ItemEntriesOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortItemList.ReplicatedEntries");
+	Offsets::ItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
+	Offsets::WorldInventoryOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.WorldInventory");
+	Offsets::QuickBarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.QuickBars");
+	Offsets::GamePhaseOffset = FindOffset(L"EnumProperty /Script/FortniteGame.FortGameStateAthena.GamePhase");
+	Offsets::StrongMyHeroOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerControllerAthena.StrongMyHero");
+	Offsets::CharacterPartsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortHero.CharacterParts");
+	Offsets::AdditionalDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.CustomCharacterPart.AdditionalData");
+	Offsets::PlayerStateOffset = FindOffset(L"ObjectProperty /Script/Engine.Controller.PlayerState");
+	Offsets::FortItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
+	Offsets::PrimaryPickupItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPickup.PrimaryPickupItemEntry");
+	Offsets::CountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortItemEntry.Count");
+	Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
+	Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
+	Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
+	Offsets::bInfiniteAmmo = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bInfiniteAmmo");
+	Offsets::CurrentWeapon = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPawn.CurrentWeapon");
+	Offsets::bInAircraftOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerStateAthena.bInAircraft");
+	Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
+	Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
+	Offsets::MinimapBackgroundBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapBackgroundBrush");
+	Offsets::MinimapSafeZoneBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneBrush");
+	Offsets::MinimapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapCircleBrush");
+	Offsets::MinimapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapNextCircleBrush");
+	Offsets::FullMapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapCircleBrush");
+	Offsets::FullMapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapNextCircleBrush");
+	Offsets::MinimapSafeZoneFinalPosBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneFinalPosBrush");
+	Offsets::bReadyToStartMatchOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bReadyToStartMatch");
+	Offsets::bClientPawnIsLoadedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bClientPawnIsLoaded");
+	Offsets::bHasClientFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasClientFinishedLoading");
+	Offsets::bHasServerFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasServerFinishedLoading");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -183,6 +221,30 @@ namespace Player
 		ProcessEvent(ItemDefinition, CreateTemporaryItemInstanceBP, &Params);
 
 		return Params.ReturnValue;
+	}
+
+	static auto SetupRemoteControlPawn(UObject* Rocket)
+	{
+		static auto func = FindObject(L"Function /Script/FortniteGame.FortRemoteControlledPawnAthena.SetupRemoteControlPawn");
+
+
+		struct Params
+		{
+			UObject* Controller;
+			UObject* Pawn;
+			byte MovementMode;
+
+			//ONLY FOR 4.1
+			FFortGameplayEffectContainerSpec EffectContainerSpecOnKill;
+		};
+
+		Params params;
+		params.Controller = Globals::Controller;
+		params.Pawn = Globals::Pawn;
+		params.MovementMode = 6;
+		params.EffectContainerSpecOnKill = FFortGameplayEffectContainerSpec{};
+
+		ProcessEvent(Rocket, func, &params);
 	}
 
 	static void SetOwningControllerForTemporaryItem(UObject* Item, UObject* Controller)

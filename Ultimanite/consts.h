@@ -9,5 +9,6 @@ namespace CONSTS
 	constexpr unsigned long STATIC_CONSTRUCT_OBJECT_INTERNAL_OFFSET = 0x156EC20;
 	constexpr unsigned long STATIC_LOAD_OBJECT_INTERNAL_OFFSET = 0x1571640;
 	constexpr unsigned long PROCESS_EVENT_INDEX = 0x40;
-	;
+	constexpr unsigned long FREE_INTERNAL_OFFSET = 0x12FC6E0;
+
 }

@@ -7,7 +7,8 @@ inline UObject* (*GetFirstPlayerController)(UObject* World);
 
 inline UObject* (*SpawnActor)(UObject* World, UObject* Class, FVector* Position, FRotator* Rotation, const FActorSpawnParameters& SpawnParameters);
 
-inline UObject* (*StaticConstructObjectInternal)(void*, void*, void*, int, unsigned int, void*, bool, void*, bool);
+static UObject* (*StaticConstructObjectInternal)(void*, void*, void*, int, unsigned int, void*, bool, void*, bool);
+
 static UObject* (*StaticLoadObjectInternal)(UObject* ObjectClass, UObject* InOuter, const TCHAR* InName, const TCHAR* Filename, uint32_t LoadFlags, UObject* Sandbox, bool bAllowObjectReconciliation);
 
 inline void (*TickPlayerInput)(const UObject* PlayerController, const float DeltaSeconds, const bool bGamePaused);
