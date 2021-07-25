@@ -272,7 +272,8 @@ namespace Game
 				auto loc = AActor::GetLocation(Globals::Pawn);
 				loc.X += 200;
 
-				auto rocket = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Weapons/Abilities/RCRocket/B_PrjPawn_Athena_RCRocket.B_PrjPawn_Athena_RCRocket_C"), loc, {});
+				static auto rocketClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Weapons/Abilities/RCRocket/B_PrjPawn_Athena_RCRocket.B_PrjPawn_Athena_RCRocket_C");
+				auto rocket = SpawnActorEasy(GetWorld(), rocketClass, loc, Controller::GetControlRotation(Globals::Controller));
 
 				Player::SetupRemoteControlPawn(rocket);
 			}
@@ -359,6 +360,7 @@ namespace Game
 
 			if (wcsstr(FunctionName.c_str(), L"OnPlayWeaponFireFX"))
 			{
+				//Needed to avoid crash!
 				if (GetAsyncKeyState(VK_LBUTTON)) HandleGuidedMissle(Object);
 			}
 
