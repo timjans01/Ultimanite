@@ -82,7 +82,7 @@ namespace Game
 
 	static void SpawnPickupAtLocation(UObject* ItemDefinition, int Count, FVector Location)
 	{
-		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location);
+		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location, {});
 
 		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::CountOffset));
 		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
@@ -281,7 +281,7 @@ namespace Game
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
 				//Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
-				auto LODS = GameplayStatics::GetAllActorsOfClass(L"Class /Script/FortniteGame.FortHLODSMActor");
+				auto LODS = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
 				for (int i = 0; i < LODS.Num(); i++)
 				{
 					AActor::Destroy(LODS[i]);
@@ -310,7 +310,7 @@ namespace Game
 		{
 			TickPlayerInput(APlayerController, DeltaSeconds, bGamePaused);
 
-			/*auto pawn = Controller::GetPawn(APlayerController);
+			auto pawn = Controller::GetPawn(APlayerController);
 
 			static bool bHasJumped;
 
@@ -328,7 +328,7 @@ namespace Game
 			else 
 			{
 				bHasJumped = false;
-			}*/
+			}
 
 		}
 	}
