@@ -177,6 +177,8 @@ namespace Game
 
 		Player::ServerReadyToStartMatch(Globals::Controller);
 
+		*reinterpret_cast<int*>(__int64(Globals::Controller) + __int64(Offsets::OverriddenBackpackSizeOffset)) = 999;
+
 		//i hate bit fields
 		auto bInfiniteAmmoBitField = (uint8_t*)(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bInfiniteAmmo);
 
@@ -219,13 +221,6 @@ namespace Game
 
 		auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(Globals::FortInventory) + 0x328 + Offsets::ItemInstancesOffset);
 		auto RequestedGuid = ((ServerAttemptInventoryDropParams*)Params)->ItemGuid;
-
-		struct QuickbarSlot
-		{
-			TArray<struct FGuid> Items;
-			bool bEnabled;
-			char Unk00[0x7];
-		};
 
 		auto QuickbarSlots = *reinterpret_cast<TArray<QuickbarSlot>*>(reinterpret_cast<uintptr_t>(Globals::Quickbar) + Offsets::PrimaryQuickbarOffset + Offsets::SlotsOffset);
 
@@ -345,6 +340,76 @@ namespace Game
 				Globals::World = GetWorld();
 
 				bDroppedLoadingScreen = true;
+			}
+
+			if (wcsstr(FunctionName.c_str(), L"ServerHandlePickup"))
+			{
+				struct ServerHandlePickupParams
+				{
+					UObject* Pickup;
+					float InFlyTime;
+					FVector InStartDirection;
+					bool bPlayPickupSound;
+				};
+
+				auto CurrentParams = (ServerHandlePickupParams*)Params;
+
+				if (CurrentParams->Pickup != nullptr)
+				{
+					// get world item definition from item entry
+					UObject** WorldItemDefinition = reinterpret_cast<UObject**>(__int64(CurrentParams->Pickup) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
+					TArray<QuickbarSlot> QuickbarSlots = *reinterpret_cast<TArray<QuickbarSlot>*>(reinterpret_cast<uintptr_t>(Globals::Quickbar) + Offsets::PrimaryQuickbarOffset + Offsets::SlotsOffset);
+
+					for (int j = 0; j < QuickbarSlots.Num(); j++)
+					{
+						if (QuickbarSlots[j].Items.Data == 0)
+						{
+							if (j >= 6)
+							{
+								// no space left in inventory, we should replace the current focused quickbar with this new pickup.
+								int* CurrentFocusedSlot = reinterpret_cast<int*>(__int64(Globals::Quickbar) + __int64(Offsets::PrimaryQuickbarOffset) + __int64(Offsets::CurrentFocusedSlotOffset));
+
+								// do not replace pickaxe
+								if (*CurrentFocusedSlot == 0)
+								{
+									continue;
+								}
+
+								j = *CurrentFocusedSlot;
+
+								FGuid CurrentFocusedGUID = QuickbarSlots[*CurrentFocusedSlot].Items[0];
+
+								// loop through item entries and see which item matches the current focused slot GUID
+								for (int i = 0; i < Globals::ItemInstances->Num(); i++)
+								{
+									auto ItemInstance = Globals::ItemInstances->operator[](i);
+
+									auto ItemEntryDefinition = reinterpret_cast<UObject**>(__int64(ItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
+									auto ItemEntryGuid = reinterpret_cast<FGuid*>(__int64(ItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(Offsets::ItemGuidOffset));
+
+									if (CurrentFocusedGUID.A == ItemEntryGuid->A &&
+										CurrentFocusedGUID.B == ItemEntryGuid->B &&
+										CurrentFocusedGUID.C == ItemEntryGuid->C &&
+										CurrentFocusedGUID.D == ItemEntryGuid->D)
+									{
+										SpawnPickupAtLocation(*ItemEntryDefinition, 1, AActor::GetLocation(Globals::Pawn));
+									}
+								}
+
+								// empty current slot
+								Player::EmptySlot(Globals::Quickbar, *CurrentFocusedSlot);
+							}
+
+							// give player item
+							AddItemToInventoryWithUpdate(*WorldItemDefinition, EFortQuickBars::Primary, j, 1);
+
+							// destroy pickup in world
+							AActor::Destroy(CurrentParams->Pickup);
+
+							break;
+						}
+					}
+				}
 			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerExecuteInventoryItem"))

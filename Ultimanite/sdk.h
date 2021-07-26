@@ -56,6 +56,10 @@ namespace Offsets
 	DWORD CurrentBuildableClassOffset;
 	DWORD LastBuildLocationOffset;
 	DWORD LastBuildRotationOffset;
+	DWORD PreferredQuickbarSlotOffset;
+	DWORD ItemGuidOffset;
+	DWORD CurrentFocusedSlotOffset;
+	DWORD OverriddenBackpackSizeOffset;
 }
 
 static void SetupOffsets()
@@ -81,6 +85,7 @@ static void SetupOffsets()
 	Offsets::bInAircraftOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerStateAthena.bInAircraft");
 	Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
 	Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
+	Offsets::CurrentFocusedSlotOffset = FindOffset(L"IntProperty /Script/FortniteGame.QuickBar.CurrentFocusedSlot");
 	Offsets::MinimapBackgroundBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapBackgroundBrush");
 	Offsets::MinimapSafeZoneBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneBrush");
 	Offsets::MinimapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapCircleBrush");
@@ -95,6 +100,9 @@ static void SetupOffsets()
 	Offsets::CurrentBuildableClassOffset = FindOffset(L"ClassProperty /Script/FortniteGame.FortPlayerController.CurrentBuildableClass");
 	Offsets::LastBuildLocationOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapLoc");
 	Offsets::LastBuildRotationOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapRot");
+	Offsets::PreferredQuickbarSlotOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortWorldItemDefinition.PreferredQuickbarSlot");
+	Offsets::ItemGuidOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortItemEntry.ItemGuid");
+	Offsets::OverriddenBackpackSizeOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortPlayerController.OverriddenBackpackSize");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -107,6 +115,13 @@ struct FSlateBrush
 	// lets really hope this doesn't change on any updates lmao
 	unsigned char Unk00[0x48];
 	UObject* ObjectResource; // 0x08
+};
+
+struct QuickbarSlot
+{
+	TArray<struct FGuid> Items;
+	bool bEnabled;
+	char Unk00[0x7];
 };
 
 namespace Kismet
@@ -515,19 +530,23 @@ namespace AActor
 {
 	static FVector GetLocation(UObject* Target)
 	{
+		static auto K2_GetActorLocation = FindObject(L"Function /Script/Engine.Actor.K2_GetActorLocation");
+
 		struct
 		{
 			FVector ret;
 		} Params;
 
-		ProcessEvent(Target, FindObject(L"Function /Script/Engine.Actor.K2_GetActorLocation"), &Params);
+		ProcessEvent(Target, K2_GetActorLocation, &Params);
 
 		return Params.ret;
 	}
 
 	static void Destroy(UObject* Target)
 	{
-		ProcessEvent(Target, FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor"), nullptr);
+		static auto K2_DestroyActor = FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor");
+
+		ProcessEvent(Target, K2_DestroyActor, nullptr);
 	}
 }
 
