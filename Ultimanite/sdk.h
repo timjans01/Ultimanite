@@ -135,6 +135,36 @@ namespace Kismet
 	}
 }
 
+namespace Building
+{
+	static bool IsInBuildMode()
+	{
+		auto func = FindObject(L"Function /Script/FortniteGame.FortPlayerController.IsInBuildMode");
+
+		bool poop;
+
+		ProcessEvent(Globals::Controller, func, &poop);
+		return poop;
+	}
+
+	static void InitializeBuildingActor(UObject* BuildingActor)
+	{
+		static UObject* InitializeKismetSpawnedBuildingActor = FindObject(L"Function /Script/FortniteGame.BuildingActor.InitializeKismetSpawnedBuildingActor");
+
+		struct Params
+		{
+			UObject* BuildingOwner;
+			UObject* SpawningController;
+		};
+
+		Params params;
+		params.BuildingOwner = BuildingActor;
+		params.SpawningController = Globals::Controller;
+
+		ProcessEvent(BuildingActor, InitializeKismetSpawnedBuildingActor, &params);
+	}
+}
+
 //TODO: Move to a class for multiplayer.
 namespace Player
 {

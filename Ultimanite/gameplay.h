@@ -55,9 +55,9 @@ namespace Game
 		static auto OnRep_SecondaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_SecondaryQuickBar");
 		static auto OnRep_PrimaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_PrimaryQuickBar");
 
-		ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
 		ProcessEvent(Globals::FortInventory, HandleInventoryLocalUpdate, nullptr);
 		ProcessEvent(Globals::Controller, HandleWorldInventoryLocalUpdate, nullptr);
+		ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
 		ProcessEvent(Globals::Quickbar, OnRep_SecondaryQuickBar, nullptr);
 		ProcessEvent(Globals::Quickbar, OnRep_PrimaryQuickBar, nullptr);
 	}
@@ -129,11 +129,17 @@ namespace Game
 
 		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{-124398, -103873.02, 3962.51}, {});
+		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{-122398, -103873.02, 3962.51}, {});
 
 		Globals::GamePlayStatics = FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics");
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
+
+		struct AthenaGameState
+		{
+			unsigned char Unk00[0x1cb0];
+			EAthenaGamePhase GamePhase;
+		};
 
 		// TODO: Move to ConsoleCommandHook
 
@@ -148,7 +154,7 @@ namespace Game
 		};
 
 		Globals::FortInventory = reinterpret_cast<InventoryPointer*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::WorldInventoryOffset)->Inventory;
-		Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ 29481.783, 40562.594, 1237.150 }, {});
+		Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{29481.783, 40562.594, 1237.150}, {});
 
 		if (Globals::FortInventory && Globals::Quickbar)
 		{
@@ -164,12 +170,6 @@ namespace Game
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_RC_Rocket_Athena_SR_T03"), EFortQuickBars::Primary, 2, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
 		}
-
-		struct AthenaGameState
-		{
-			unsigned char Unk00[0x1cb0];
-			EAthenaGamePhase GamePhase;
-		};
 
 		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Aircraft;
 
@@ -205,10 +205,6 @@ namespace Game
 				Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Hat, CharacterPartsVector[i]);
 			}
 		}
-
-
-
-		SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/VacuumTube/WID_Shotgun_VacuumTube_VR_Ore_T05.WID_Shotgun_VacuumTube_VR_Ore_T05"), 1, FVector{35000, 40562.594, 1300.150});
 	}
 
 	static void HandleInventoryDrop(void* Params)
@@ -235,7 +231,7 @@ namespace Game
 
 		for (int j = 0; j < QuickbarSlots.Num(); j++)
 		{
-			if (QuickbarSlots[j].Items.Data != NULL)
+			if (QuickbarSlots[j].Items.Data != nullptr)
 			{
 				if (CompareGuids(QuickbarSlots[j].Items[0], RequestedGuid))
 				{
@@ -313,6 +309,37 @@ namespace Game
 				HandleInventoryDrop(Params);
 			}
 
+			if (wcsstr(FunctionName.c_str(), L"ServerCreateBuildingActor"))
+			{
+				/*if (bDroppedLoadingScreen && GetAsyncKeyState(VK_LBUTTON) && Building::IsInBuildMode())
+				{
+					struct FBuildingClassData
+					{
+						UObject* BuildingClass; // 0x00(0x08)
+						int PreviousBuildingLevel; // 0x08(0x04)
+						int UpgradeLevel; // 0x0c(0x04)
+					};
+
+					struct ServerCreateBuildingActorParams
+					{
+						FBuildingClassData BuildingClassData;
+						FVector BuildLoc;
+						FRotator BuildRot;
+						bool bMirrored;
+					};
+
+					auto params = (ServerCreateBuildingActorParams*)Params;
+
+					//CRASH PLEASE ADD SOME CHECKS FOR NULL LOCATIONS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					if (params && !Util::IsBadReadPtr(params) && params->BuildLoc.X != 0)
+					{
+						auto actor = SpawnActorEasy(GetWorld(), params->BuildingClassData->BuildingClass, params->BuildLoc, params->BuildRot);
+						
+						//Building::InitializeBuildingActor(actor);
+					}
+				}*/
+			}
+
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
 				FSlateBrush EmptyBrush = Kismet::NoResourceBrush();
@@ -335,7 +362,7 @@ namespace Game
 					AActor::Destroy(LODS[i]);
 				}
 
-				
+
 				auto NetDebugUi = FindObject(L"NetDebugUI_C /Engine/Transient.FortEngine_0.FortGameInstance_0.AthenaHUD_C_0.WidgetTree_0.NetDebugContainer.WidgetTree_0.NetDebugUI");
 				Widget::RemoveFromViewport(NetDebugUi);
 
@@ -356,8 +383,20 @@ namespace Game
 
 			if (wcsstr(FunctionName.c_str(), L"OnPlayWeaponFireFX"))
 			{
-				//Needed to avoid crash!
-				if (GetAsyncKeyState(VK_LBUTTON)) HandleGuidedMissle(Object);
+				static bool bHasShoot;
+
+				if (GetAsyncKeyState(VK_LBUTTON))
+				{
+					if (!bHasShoot)
+					{
+						bHasShoot = !bHasShoot;
+						HandleGuidedMissle(Object);
+					}
+				}
+				else
+				{
+					bHasShoot = false;
+				}
 			}
 
 			#ifdef PE_LOGGING
