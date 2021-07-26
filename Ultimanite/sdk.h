@@ -15,6 +15,7 @@ namespace Globals
 	inline UObject* Quickbar;
 	inline TArray<UObject*>* ItemInstances;
 	inline UObject* GamePlayStatics;
+	inline UObject* World;
 }
 
 namespace Offsets
@@ -52,6 +53,9 @@ namespace Offsets
 	DWORD bClientPawnIsLoadedOffset;
 	DWORD bHasClientFinishedLoadingOffset;
 	DWORD bHasServerFinishedLoadingOffset;
+	DWORD CurrentBuildableClassOffset;
+	DWORD LastBuildLocationOffset;
+	DWORD LastBuildRotationOffset;
 }
 
 static void SetupOffsets()
@@ -88,6 +92,9 @@ static void SetupOffsets()
 	Offsets::bClientPawnIsLoadedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bClientPawnIsLoaded");
 	Offsets::bHasClientFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasClientFinishedLoading");
 	Offsets::bHasServerFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasServerFinishedLoading");
+	Offsets::CurrentBuildableClassOffset = FindOffset(L"ClassProperty /Script/FortniteGame.FortPlayerController.CurrentBuildableClass");
+	Offsets::LastBuildLocationOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapLoc");
+	Offsets::LastBuildRotationOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapRot");
 }
 
 enum class EFortQuickBars : uint8_t

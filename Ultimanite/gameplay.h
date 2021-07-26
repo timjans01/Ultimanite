@@ -162,13 +162,13 @@ namespace Game
 
 			Player::SetOwner(Globals::Quickbar, Globals::Controller);
 
+			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall"), EFortQuickBars::Secondary, 0, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03"), EFortQuickBars::Primary, 1, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_RC_Rocket_Athena_SR_T03"), EFortQuickBars::Primary, 2, 1);
-			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
 		}
 
 		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Aircraft;
@@ -309,37 +309,6 @@ namespace Game
 				HandleInventoryDrop(Params);
 			}
 
-			if (wcsstr(FunctionName.c_str(), L"ServerCreateBuildingActor"))
-			{
-				/*if (bDroppedLoadingScreen && GetAsyncKeyState(VK_LBUTTON) && Building::IsInBuildMode())
-				{
-					struct FBuildingClassData
-					{
-						UObject* BuildingClass; // 0x00(0x08)
-						int PreviousBuildingLevel; // 0x08(0x04)
-						int UpgradeLevel; // 0x0c(0x04)
-					};
-
-					struct ServerCreateBuildingActorParams
-					{
-						FBuildingClassData BuildingClassData;
-						FVector BuildLoc;
-						FRotator BuildRot;
-						bool bMirrored;
-					};
-
-					auto params = (ServerCreateBuildingActorParams*)Params;
-
-					//CRASH PLEASE ADD SOME CHECKS FOR NULL LOCATIONS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-					if (params && !Util::IsBadReadPtr(params) && params->BuildLoc.X != 0)
-					{
-						auto actor = SpawnActorEasy(GetWorld(), params->BuildingClassData->BuildingClass, params->BuildLoc, params->BuildRot);
-						
-						//Building::InitializeBuildingActor(actor);
-					}
-				}*/
-			}
-
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
 				FSlateBrush EmptyBrush = Kismet::NoResourceBrush();
@@ -372,6 +341,8 @@ namespace Game
 				Player::ServerSetClientHasFinishedLoading(Globals::Controller);
 
 				PlayerState::OnRep_SquadId();
+
+				Globals::World = GetWorld();
 
 				bDroppedLoadingScreen = true;
 			}
@@ -418,10 +389,13 @@ namespace Game
 
 			if (bDroppedLoadingScreen)
 			{
+				auto bCanBuild1 = reinterpret_cast<bool*>(__int64(Globals::Controller) + 0x1990);
+				auto bCanBuild2 = reinterpret_cast<bool*>(__int64(Globals::Controller) + 0x1998);
 				auto CurrentMovementStyle = reinterpret_cast<byte*>(reinterpret_cast<uintptr_t>(Globals::Pawn) + Offsets::MovementStyleOffset);
 				auto bWantsToSprint = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bWantsToSprintOffset);
 
-				if (*bWantsToSprint && !GetAsyncKeyState(VK_LBUTTON) && !GetAsyncKeyState(VK_RBUTTON))
+				//Sorry i had to remove VK_LBUTTON, needed to build properly.
+				if (*bWantsToSprint && !GetAsyncKeyState(VK_RBUTTON))
 				{
 					*CurrentMovementStyle = 3;
 				}
@@ -454,6 +428,15 @@ namespace Game
 				{
 					Sleep(1000);
 					//DEBUG CODE
+				}
+
+				if (bDroppedLoadingScreen && GetAsyncKeyState(VK_LBUTTON) && *bCanBuild2 && !*bCanBuild1)
+				{
+					auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
+					auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
+					auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
+					auto BuildingActor = SpawnActorEasy(Globals::World, CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
+					Building::InitializeBuildingActor(BuildingActor);
 				}
 			}
 		}
