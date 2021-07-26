@@ -335,20 +335,16 @@ namespace Game
 					AActor::Destroy(LODS[i]);
 				}
 
-				PlayerState::OnRep_SquadId();
+				
 				auto NetDebugUi = FindObject(L"NetDebugUI_C /Engine/Transient.FortEngine_0.FortGameInstance_0.AthenaHUD_C_0.WidgetTree_0.NetDebugContainer.WidgetTree_0.NetDebugUI");
 				Widget::RemoveFromViewport(NetDebugUi);
 
-				auto bReadyToStartMatch = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bReadyToStartMatchOffset);
-				*bReadyToStartMatch = true;
-				auto bClientPawnIsLoaded = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bClientPawnIsLoadedOffset);
-				*bClientPawnIsLoaded = true;
-				auto bHasClientFinishedLoading = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bHasClientFinishedLoadingOffset);
-				*bHasClientFinishedLoading = true;
 				auto bHasServerFinishedLoading = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bHasServerFinishedLoadingOffset);
 				*bHasServerFinishedLoading = true;
 
 				Player::ServerSetClientHasFinishedLoading(Globals::Controller);
+
+				PlayerState::OnRep_SquadId();
 
 				bDroppedLoadingScreen = true;
 			}
