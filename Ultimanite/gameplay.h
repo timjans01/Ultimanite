@@ -126,12 +126,10 @@ namespace Game
 		Globals::Controller = GetFirstPlayerController(GetWorld());
 		Globals::GameState = FindObject(L"Athena_GameState_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameState_C");
 		Globals::GameMode = FindObject(L"Athena_GameMode_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameMode_C");
-		
 		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ -122398, -103873.02, 3962.51 }, {});
-		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
-		
 		Globals::PlayerState = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + __int64(Offsets::PlayerStateOffset));
 
+		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
 		Globals::GamePlayStatics = FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics");
 
 		UObject* FortEngine = FindObject(L"FortEngine /Engine/Transient.FortEngine_");
@@ -139,10 +137,41 @@ namespace Game
 		UObject* GameViewport = *reinterpret_cast<UObject**>(__int64(FortEngine) + __int64(Offsets::GameViewportOffset));
 		UObject** CurrentConsole = reinterpret_cast<UObject**>(__int64(GameViewport) + __int64(Offsets::ViewportConsoleOffset));
 		UObject* NewConsole = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.Console"), GameViewport, 0, 0, 0, 0, 0, 0, 0);
-
-		*CurrentConsole = NewConsole;
+		
+		if (NewConsole)
+		{
+			*CurrentConsole = NewConsole;
+		}
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
+
+		FString CurrentVersion = RuntimeOptions::GetGameVersion();
+
+		printf("GamePhase: %x\n", Offsets::GamePhaseOffset);
+
+		/*
+		// builds that require GamePhase
+		if (wcsstr(CurrentVersion.ToWString(), L"v4") ||
+			wcsstr(CurrentVersion.ToWString(), L"v6") ||
+			wcsstr(CurrentVersion.ToWString(), L"v7"))
+		{
+			EAthenaGamePhase* CurrentGamePhase = reinterpret_cast<EAthenaGamePhase*>(__int64(Globals::GameState) + __int64(Offsets::GamePhaseOffset));
+			EAthenaGamePhase TargetGamePhase = EAthenaGamePhase::Aircraft;
+
+			*CurrentGamePhase = TargetGamePhase;
+
+			GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
+		}
+
+		// builds that require StartMatch
+		if (wcsstr(CurrentVersion.ToWString(), L"v5") ||
+			wcsstr(CurrentVersion.ToWString(), L"v8") ||
+			wcsstr(CurrentVersion.ToWString(), L"v9") ||
+			wcsstr(CurrentVersion.ToWString(), L"v10"))
+		{
+			GameMode::StartMatch(Globals::GameMode);
+		}
+		*/
 
 		// TODO: Move to ConsoleCommandHook
 
@@ -176,19 +205,20 @@ namespace Game
 		}
 		*/
 
-		struct AthenaGameState
+		Player::ServerReadyToStartMatch(Globals::Controller);
+		
+		struct test
 		{
-			unsigned char Unk00[0x1cb0];
+			unsigned char Unk00[0x19F2];
 			EAthenaGamePhase GamePhase;
 		};
 
-		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Aircraft;
-
+		((test*)Globals::GameState)->GamePhase = EAthenaGamePhase::Warmup;
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 		
-		Player::ServerReadyToStartMatch(Globals::Controller);
 		//ProcessEvent(Globals::GameMode, FindObject(L"Function /Script/Engine.GameMode.StartMatch"), nullptr);
 
+		/*
 		*reinterpret_cast<int*>(__int64(Globals::Controller) + __int64(Offsets::OverriddenBackpackSizeOffset)) = 999;
 
 		//i hate bit fields
@@ -206,6 +236,7 @@ namespace Game
 
 			ProcessEvent(Globals::PlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
 		}
+		*/
 	}
 
 	static void HandleInventoryDrop(void* Params)
@@ -249,23 +280,6 @@ namespace Game
 				{
 					SpawnPickupAtLocation(*ItemDefinition, 1, loc);
 				}
-			}
-		}
-	}
-
-	static void HandleGuidedMissle(UObject* Object)
-	{
-		if (bDroppedLoadingScreen)
-		{
-			if (wcsstr(Object->GetName().c_str(), L"B_RCRocket_Launcher_Athena_C_0"))
-			{
-				auto loc = AActor::GetLocation(Globals::Pawn);
-				loc.X += 200;
-
-				static auto rocketClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Weapons/Abilities/RCRocket/B_PrjPawn_Athena_RCRocket.B_PrjPawn_Athena_RCRocket_C");
-				auto rocket = SpawnActorEasy(GetWorld(), rocketClass, loc, Controller::GetControlRotation(Globals::Controller));
-
-				Player::SetupRemoteControlPawn(rocket);
 			}
 		}
 	}
@@ -315,8 +329,7 @@ namespace Game
 				*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
 				*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
 				*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset)) = EmptyBrush; // MinimapCircleBrush
-				*/
-
+				
 				//Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
 				//Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
 
@@ -343,6 +356,7 @@ namespace Game
 				Globals::World = GetWorld();
 
 				bDroppedLoadingScreen = true;
+				*/
 			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerHandlePickup"))
@@ -415,51 +429,9 @@ namespace Game
 				}
 			}
 
-			if (wcsstr(FunctionName.c_str(), L"CheatScript"))
-			{
-				std::wstring ScriptName = ((FString*)Params)->ToWString();
-				std::wstring Arg;
-
-				if (ScriptName.find(L" ") != std::wstring::npos)
-				{
-					Arg = ScriptName.substr(ScriptName.find(L" ") + 1);
-				}
-
-				
-				/*
-				if (wcsstr(ScriptName->ToWString(), L"EquipWeapon"))
-				{
-					SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/Standard_High/WID_Shotgun_Standard_SR_Ore_T04.WID_Shotgun_Standard_SR_Ore_T04"), 1, AActor::GetLocation(Globals::Pawn));
-				}
-
-				if (wcsstr(ScriptName->ToWString(), L"EquipVehicle"))
-				{
-					printf("EquipVehicle\n");
-				}
-				*/
-			}
-
 			if (wcsstr(FunctionName.c_str(), L"ServerExecuteInventoryItem"))
 			{
 				EquipInventoryItem(*(FGuid*)Params);
-			}
-
-			if (wcsstr(FunctionName.c_str(), L"OnPlayWeaponFireFX"))
-			{
-				static bool bHasShoot;
-
-				if (GetAsyncKeyState(VK_LBUTTON))
-				{
-					if (!bHasShoot)
-					{
-						bHasShoot = !bHasShoot;
-						HandleGuidedMissle(Object);
-					}
-				}
-				else
-				{
-					bHasShoot = false;
-				}
 			}
 
 			#ifdef PE_LOGGING
@@ -541,7 +513,6 @@ namespace Game
 		DetourUpdateThread(GetCurrentThread());
 
 		DetourAttach(&(void*&)ProcessEvent, Hooks::ProcessEventDetour);
-		//DetourAttach(&(void*&)TickPlayerInput, Hooks::TickPlayerInputHook);
 
 		DetourTransactionCommit();
 

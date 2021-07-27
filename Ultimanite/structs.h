@@ -169,6 +169,7 @@ struct FName
 
 void* (*ProcessEvent)(void* Object, void* Function, void* Params);
 
+// This stays the same throughout all Fortnite builds so far, no need to change.
 struct UObject
 {
 	void** VTableObject;
@@ -289,6 +290,7 @@ struct FVector2D
 	}
 };
 
+// This stays the same throughout all of Fortnite, no need to change.
 struct FUObjectItem
 {
 	UObject* Object;
@@ -298,11 +300,26 @@ struct FUObjectItem
 	DWORD SerialNumber2;
 };
 
+// This struct is used on 4.20 and below. Not used on any future builds.
+// We will call it TUObjectArray to prevent conflict.
 struct TUObjectArray
 {
 	uint8_t* Objects;
 	uint32_t MaxElements;
 	uint32_t NumElements;
+};
+
+// This struct is used on 4.21 and above.
+struct TUObjectArrayNew
+{
+	FUObjectItem* Objects[9];
+};
+
+struct GObjects
+{
+	TUObjectArrayNew* ObjectArray;
+	BYTE _padding_0[0xC];
+	DWORD ObjectCount;
 };
 
 struct FKey {
@@ -378,111 +395,3 @@ public:
 private:
 	uint8_t value;
 };
-
-// CRAP FOR MISSLE START
-
-struct UCurveTable : UObject
-{
-	char UnknownData_28[0x58]; // 0x28(0x58)
-};
-
-struct FCurveTableRowHandle
-{
-	struct UCurveTable* CurveTable; // 0x00(0x08)
-	struct FName RowName; // 0x08(0x08)
-};
-
-struct FScalableFloat
-{
-	float Value; // 0x00(0x04)
-	char UnknownData_4[0x4]; // 0x04(0x04)
-	struct FCurveTableRowHandle Curve; // 0x08(0x10)
-	char UnknownData_18[0x10]; // 0x18(0x10)
-};
-
-struct FFortTargetFilter
-{
-	char ActorTypeFilter; // 0x00(0x01)
-	char UnknownData_1[0x7]; // 0x01(0x07)
-	UObject* ActorClassFilter; // 0x08(0x08)
-	bool bExcludeInstigator; // 0x10(0x01)
-	bool bExcludeRequester; // 0x11(0x01)
-	bool bExcludeAllAttachedToInstigator; // 0x12(0x01)
-	bool bExcludeAllAttachedToRequester; // 0x13(0x01)
-	bool bExcludePawnFriends; // 0x14(0x01)
-	bool bExcludeFriendlyAI; // 0x15(0x01)
-	bool bExcludePawnEnemies; // 0x16(0x01)
-	bool bExcludeNonPawnFriends; // 0x17(0x01)
-	bool bExcludeNonPawnEnemies; // 0x18(0x01)
-	bool bExcludeDBNOPawns; // 0x19(0x01)
-	bool bExcludeWithoutNavigationCorridor; // 0x1a(0x01)
-	bool bExcludeNonPlayerBuiltPieces; // 0x1b(0x01)
-	bool bExcludePlayerBuiltPieces; // 0x1c(0x01)
-	bool bExcludeNonBGABuildings; // 0x1d(0x01)
-	bool bExcludeNonBlockingHits; // 0x1e(0x01)
-	bool bTraceComplexCollision; // 0x1f(0x01)
-};
-
-struct FFortAbilityTargetSelection
-{
-	char Shape; // 0x00(0x01)
-	char UnknownData_1[0x7]; // 0x01(0x07)
-	struct FString CustomShapeComponentName; // 0x08(0x10)
-	uint8_t TestType; // 0x18(0x01)
-	uint8_t PrimarySource; // 0x19(0x01)
-	uint8_t SecondarySource; // 0x1a(0x01)
-	char UnknownData_1B[0x5]; // 0x1b(0x05)
-	struct FScalableFloat Range; // 0x20(0x28)
-	struct FVector HalfExtents; // 0x48(0x0c)
-	char UnknownData_54[0x4]; // 0x54(0x04)
-	struct FScalableFloat ConeYawAngle; // 0x58(0x28)
-	struct FScalableFloat ConePitchAngle; // 0x80(0x28)
-	struct FScalableFloat ConeMinRadius; // 0xa8(0x28)
-	struct FFortTargetFilter TargetFilter; // 0xd0(0x20)
-	bool bExcludeObstructedByWorld; // 0xf0(0x01)
-	bool bCreateHitResultWhenNoTargetsFound; // 0xf1(0x01)
-	bool bUseProjectileRotationForDamageZones; // 0xf2(0x01)
-	uint8_t TargetSelectionUsage; // 0xf3(0x01)
-	int MaxTargets; // 0xf4(0x04)
-};
-
-struct FFortAbilityTargetSelectionList
-{
-	struct TArray<struct FFortAbilityTargetSelection> List; // 0x00(0x10)
-	char bStopAtFirstSuccess : 1; // 0x10(0x01)
-	char bKeepCheckingListOnIndestructibleHit : 1; // 0x10(0x01)
-	char bUseWeaponRanges : 1; // 0x10(0x01)
-	char bUseMaxYawAngleToTarget : 1; // 0x10(0x01)
-	char UnknownData_10_4 : 4; // 0x10(0x01)
-	char UnknownData_11[0x3]; // 0x11(0x03)
-	float MaxYawAngleToTarget; // 0x14(0x04)
-	char UnknownData_18[0x8]; // 0x18(0x08)
-};
-
-struct FGameplayEffectSpecHandle
-{
-	char UnknownData_0[0x18]; // 0x00(0x18)
-};
-
-struct FGameplayTag
-{
-	struct FName TagName; // 0x00(0x08)
-};
-
-// Size: 0x20 (Inherited: 0x00)
-struct FGameplayTagContainer
-{
-	struct TArray<struct FGameplayTag> GameplayTags; // 0x00(0x10)
-	struct TArray<struct FGameplayTag> ParentTags; // 0x10(0x10)
-};
-
-struct FFortGameplayEffectContainerSpec
-{
-	struct FFortAbilityTargetSelectionList TargetSelection; // 0x00(0x20)
-	struct TArray<struct FGameplayEffectSpecHandle> TargetGameplayEffectSpecs; // 0x20(0x10)
-	struct TArray<struct FGameplayEffectSpecHandle> OwnerGameplayEffectSpecs; // 0x30(0x10)
-	struct FGameplayTagContainer ActivationCues; // 0x40(0x20)
-	struct FGameplayTagContainer ImpactCues; // 0x60(0x20)
-};
-
-//CRAP FOR MISSLE END

@@ -1,7 +1,12 @@
 #pragma once
 #include "framework.h"
 
+// Used on UE version 4.20 and lower.
 inline TUObjectArray* ObjObjects;
+
+// Used on UE version 4.21 and higher.
+inline GObjects* GlobalObjects;
+
 
 inline UObject* (*GetFirstPlayerController)(UObject* World);
 
@@ -13,16 +18,87 @@ static UObject* (*StaticLoadObjectInternal)(UObject* ObjectClass, UObject* InOut
 
 inline void (*TickPlayerInput)(const UObject* PlayerController, const float DeltaSeconds, const bool bGamePaused);
 
+inline void NumChunks(int* start, int* end)
+{
+	int cStart = 0, cEnd = 0;
+
+	if (!cEnd)
+	{
+		while (1)
+		{
+			if (GlobalObjects->ObjectArray->Objects[cStart] == 0)
+			{
+				cStart++;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		cEnd = cStart;
+		while (1)
+		{
+			if (GlobalObjects->ObjectArray->Objects[cEnd] == 0)
+			{
+				break;
+			}
+			else
+			{
+				cEnd++;
+			}
+		}
+	}
+
+	*start = cStart;
+	*end = cEnd;
+}
+
+
 
 static UObject* FindObjectById(uint32_t Id)
 {
-	auto Offset = 24 * Id;
-	return *(UObject**)(ObjObjects->Objects + Offset);
+	if (GlobalObjects)
+	{
+		// we are on ue 4.21+
+		int cStart = 0, cEnd = 0;
+		int chunkIndex = 0, chunkSize = 0xFFFF, chunkPos;
+		FUObjectItem* Object;
+
+		NumChunks(&cStart, &cEnd);
+
+		chunkIndex = Id / chunkSize;
+		if (chunkSize * chunkIndex != 0 &&
+			chunkSize * chunkIndex == Id)
+		{
+			chunkIndex--;
+		}
+
+		chunkPos = cStart + chunkIndex;
+		if (chunkPos < cEnd)
+		{
+			Object = GlobalObjects->ObjectArray->Objects[chunkPos] + (Id - chunkSize * chunkIndex);
+
+			if (!Object) { return NULL; }
+
+			return Object->Object;
+		}
+	}
+	else
+	{
+		// we are on ue 4.20 on lower
+		auto Offset = 24 * Id;
+		return *(UObject**)(ObjObjects->Objects + Offset);
+	}
+
+	return nullptr;
 }
 
 template <typename T = UObject*> static T FindObject(std::wstring ObjectToFind)
 {
-	for (int i = 0; i < ObjObjects->NumElements; i++)
+	int ObjectCount = GlobalObjects ? GlobalObjects->ObjectCount : ObjObjects->NumElements;
+
+	for (int i = 0; i < ObjectCount; i++)
 	{
 		auto Object = FindObjectById(i);
 
@@ -31,7 +107,6 @@ template <typename T = UObject*> static T FindObject(std::wstring ObjectToFind)
 			continue;
 		}
 
-		//I am aware this is bad but we can't move to starts_with since the game itself is using an old std version.
 		if (wcsstr(Object->GetFullName().c_str(), ObjectToFind.c_str()))
 		{
 			return (T)Object;

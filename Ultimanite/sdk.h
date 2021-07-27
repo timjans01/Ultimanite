@@ -62,6 +62,7 @@ namespace Offsets
 	DWORD OverriddenBackpackSizeOffset;
 	DWORD GameViewportOffset;
 	DWORD ViewportConsoleOffset;
+	DWORD CurrentPlaylistDataOffset;
 }
 
 static void SetupOffsets()
@@ -107,6 +108,7 @@ static void SetupOffsets()
 	Offsets::OverriddenBackpackSizeOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortPlayerController.OverriddenBackpackSize");
 	Offsets::GameViewportOffset = FindOffset(L"ObjectProperty /Script/Engine.Engine.GameViewport");
 	Offsets::ViewportConsoleOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.ViewportConsole");
+	Offsets::CurrentPlaylistDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortGameStateAthena.CurrentPlaylistData");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -158,6 +160,30 @@ namespace Kismet
 		ProcessEvent(Default__WidgetBlueprintLibrary, NoResourceBrush, &ReturnValue);
 
 		return ReturnValue;
+	}
+}
+
+namespace GameMode
+{
+	static void StartMatch(UObject* InGameMode)
+	{
+		static UObject* StartMatch = FindObject(L"Function /Script/Engine.GameMode.StartMatch");
+
+		ProcessEvent(InGameMode, StartMatch, nullptr);
+	}
+}
+
+namespace RuntimeOptions
+{
+	static FString GetGameVersion()
+	{
+		static UObject* Default__FortRuntimeOptions = FindObject(L"FortRuntimeOptions /Script/FortniteGame.Default__FortRuntimeOptions");
+		static UObject* GetGameVersion = FindObject(L"Function /Script/FortniteGame.FortRuntimeOptions.GetGameVersion");
+		
+		FString GameVersion;
+		ProcessEvent(Default__FortRuntimeOptions, GetGameVersion, &GameVersion);
+
+		return GameVersion;
 	}
 }
 
@@ -277,30 +303,6 @@ namespace Player
 		ProcessEvent(ItemDefinition, CreateTemporaryItemInstanceBP, &Params);
 
 		return Params.ReturnValue;
-	}
-
-	static auto SetupRemoteControlPawn(UObject* Rocket)
-	{
-		static auto func = FindObject(L"Function /Script/FortniteGame.FortRemoteControlledPawnAthena.SetupRemoteControlPawn");
-
-
-		struct Params
-		{
-			UObject* Controller;
-			UObject* Pawn;
-			byte MovementMode;
-
-			//ONLY FOR 4.1
-			FFortGameplayEffectContainerSpec EffectContainerSpecOnKill;
-		};
-
-		Params params;
-		params.Controller = Globals::Controller;
-		params.Pawn = Globals::Pawn;
-		params.MovementMode = 6;
-		params.EffectContainerSpecOnKill = FFortGameplayEffectContainerSpec{};
-
-		ProcessEvent(Rocket, func, &params);
 	}
 
 	static void SetOwningControllerForTemporaryItem(UObject* Item, UObject* Controller)
@@ -496,6 +498,13 @@ namespace GameState
 		static UObject* OnRep_GamePhase = FindObject(L"Function /Script/FortniteGame.FortGameStateAthena.OnRep_GamePhase");
 
 		ProcessEvent(InGameState, OnRep_GamePhase, &OldGamePhase);
+	}
+
+	static void OnRep_CurrentPlaylistData(UObject* InGameState)
+	{
+		static UObject* OnRep_CurrentPlaylistData = FindObject(L"Function /Script/FortniteGame.FortGameStateAthena.OnRep_CurrentPlaylistData");
+
+		ProcessEvent(InGameState, OnRep_CurrentPlaylistData, nullptr);
 	}
 }
 
