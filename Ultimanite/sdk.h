@@ -60,6 +60,8 @@ namespace Offsets
 	DWORD ItemGuidOffset;
 	DWORD CurrentFocusedSlotOffset;
 	DWORD OverriddenBackpackSizeOffset;
+	DWORD GameViewportOffset;
+	DWORD ViewportConsoleOffset;
 }
 
 static void SetupOffsets()
@@ -71,7 +73,7 @@ static void SetupOffsets()
 	Offsets::QuickBarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.QuickBars");
 	Offsets::GamePhaseOffset = FindOffset(L"EnumProperty /Script/FortniteGame.FortGameStateAthena.GamePhase");
 	Offsets::StrongMyHeroOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerControllerAthena.StrongMyHero");
-	Offsets::CharacterPartsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortHero.CharacterParts");
+	Offsets::CharacterPartsOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerState.CharacterParts");
 	Offsets::AdditionalDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.CustomCharacterPart.AdditionalData");
 	Offsets::PlayerStateOffset = FindOffset(L"ObjectProperty /Script/Engine.Controller.PlayerState");
 	Offsets::FortItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
@@ -103,6 +105,8 @@ static void SetupOffsets()
 	Offsets::PreferredQuickbarSlotOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortWorldItemDefinition.PreferredQuickbarSlot");
 	Offsets::ItemGuidOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortItemEntry.ItemGuid");
 	Offsets::OverriddenBackpackSizeOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortPlayerController.OverriddenBackpackSize");
+	Offsets::GameViewportOffset = FindOffset(L"ObjectProperty /Script/Engine.Engine.GameViewport");
+	Offsets::ViewportConsoleOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.ViewportConsole");
 }
 
 enum class EFortQuickBars : uint8_t

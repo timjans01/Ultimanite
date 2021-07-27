@@ -73,20 +73,13 @@ inline void DumpObjects()
 static UObject* GetWorld()
 {
 	auto FortEngine = FindObject(L"FortEngine_");
+	auto GameViewportOffset = FindOffset(L"ObjectProperty /Script/Engine.Engine.GameViewport");
+	auto WorldOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.World");
 
-	struct Viewport
-	{
-		unsigned char Unk00[0x88];
-		UObject* World;
-	};
+	UObject* GameViewport = *reinterpret_cast<UObject**>(__int64(FortEngine) + __int64(GameViewportOffset));
+	UObject** World = reinterpret_cast<UObject**>(__int64(GameViewport) + __int64(WorldOffset));
 
-	struct Engine
-	{
-		unsigned char Unk00[0x728];
-		Viewport* GameViewport;
-	};
-
-	return ((Engine*)FortEngine)->GameViewport->World;
+	return *World;
 }
 
 static UObject* SpawnActorEasy(UObject* WorldContextObject, UObject* Actor, FVector Location, FRotator ParamRotation)

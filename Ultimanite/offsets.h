@@ -1,0 +1,20 @@
+#pragma once
+
+// From 2.5-CL-3889387 to 4.5-CL-4166199.
+//#define UE_4_20_GOBJECTS "48 8B 05 ? ? ? ? 48 8D 1C C8 81 4B ? ? ? ? ? 49 63 76 30" // 48 8D 0D ?? ?? ?? ?? 48 83 C4 38 E9 47 FD FF FF
+
+
+#define UE_4_20_GOBJECTS "48 8B 05 ? ? ? ? 48 8D 1C C8 81 4B ? ? ? ? ? 49 63 76 30"
+#define UE_4_20_FNAME_TOSTRING "48 89 5C 24 ? 57 48 83 EC 40 83 79 04 00 48 8B DA 48 8B F9"
+#define UE_4_20_GETFIRSTPLAYERCONTROLLER "83 B9 ? ? ? ? ? 7E ? 48 8B 89 ? ? ? ? E9"
+#define UE_4_20_SPAWNACTORFROMCLASS "40 53 56 57 48 83 EC 70 48 8B 05 ? ? ? ? 48 33 C4 48 89 44 24 ? 0F 28 1D ? ? ? ? 0F 57 D2 48 8B B4 24 ? ? ? ? 0F 28 CB "
+#define UE_4_20_CONSTRUCTOBJECT "4C 89 44 24 ? 53 55 56 57 41 54 41 56 41 57 48 81 EC ? ? ? ? 48 8B 05 ? ? ? ?"
+#define UE_4_20_LOADOBJECT "48 8B 5D ? 48 8B D3 48 8B 4B 20 48 8B C1 48 85 C9 74 ?"
+
+#define UE_4_21_GOBJECTS "48 8D 0D ? ? ? ? E8 ? ? ? ?"
+#define UE_4_21_FNAME_TOSTRING "48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 20 48 8B DA 4C 8B F1"
+
+// From 7.00-CL-4629139 (not confirmed, could be a later build) to 10.40-CL-9380822.
+#define UE_4_23_GOBJECTS "49 63 C8 48 8D 14 40 48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1"
+#define UE_4_23_GETFIRSTPLAYERCONTROLLER "83 B9 ? ? ? ? ? 7E ? 48 8B 89 ? ? ? ? E9"
+#define UE_4_23_CONSTRUCTOBJECT "48 89 5C 24 18 55 56 57 41 54 41 55 41 56 41 57 48 8D AC 24 ? ? ? ? 48 81 EC ? ? ? ?  48 8B 05 ? ? ? ? 48 33 C4 48 89 85 ? ? ? ? 44 8B A5 ? ? ? ? 48 8D 05"

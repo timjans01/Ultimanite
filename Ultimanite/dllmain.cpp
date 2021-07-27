@@ -1,31 +1,43 @@
 #include "framework.h"
 #include "gameplay.h"
+#include "offsets.h"
 
 void Setup()
 {
 	Util::SetupConsole();
 
-	auto ModuleBaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+	auto UE_4_20_GObjectsAddress = Util::FindPattern(UE_4_20_GOBJECTS);
+	auto UE_4_20_ToStringAddress = Util::FindPattern(UE_4_20_FNAME_TOSTRING);
+	auto UE_4_20_GetFirstPlayerController = Util::FindPattern(UE_4_20_GETFIRSTPLAYERCONTROLLER);
+	auto UE_4_20_SpawnActorFromClass = Util::FindPattern(UE_4_20_SPAWNACTORFROMCLASS);
+	auto UE_4_20_ConstructObject = Util::FindPattern(UE_4_20_CONSTRUCTOBJECT);
 
-	// TODO: Move to patterns
-	auto ToStringAddress = ModuleBaseAddress + CONSTS::FNAME_TO_STRING_OFFSET;
-	auto ObjectArrayAddress = ModuleBaseAddress + CONSTS::OBJECTS_ARRAY_OFFSET;
-	auto GetFirstPlayerControllerAddress = ModuleBaseAddress + CONSTS::GET_FIRST_CONTROLLER_OFFSET;
-	auto SpawnActorAddress = ModuleBaseAddress + CONSTS::SPAWN_ACTOR_OFFSET;
-	auto StaticConstructObjectInternalAddress = ModuleBaseAddress + CONSTS::STATIC_CONSTRUCT_OBJECT_INTERNAL_OFFSET;
-	auto StaticLoadObjectInternalAddress = ModuleBaseAddress + CONSTS::STATIC_LOAD_OBJECT_INTERNAL_OFFSET;
-	auto TickPlayerInputAddress = ModuleBaseAddress + CONSTS::TICK_PLAYER_INPUT_OFFSET;
-	auto FreeInternalAddress = ModuleBaseAddress + CONSTS::FREE_INTERNAL_OFFSET;
+	if (!UE_4_20_GObjectsAddress) printf("Not found: UE_4_20_GObjectsAddress\n");
+	if (!UE_4_20_ToStringAddress) printf("Not found: UE_4_20_ToStringAddress\n");
+	if (!UE_4_20_GetFirstPlayerController) printf("Not found: UE_4_20_GetFirstPlayerController\n");
+	if (!UE_4_20_SpawnActorFromClass) printf("Not found: UE_4_20_SpawnActorFromClass\n");
+	if (!UE_4_20_ConstructObject) printf("Not found: UE_4_20_ConstructObject\n");
 
-	ObjObjects = decltype(ObjObjects)(ObjectArrayAddress);
-	FNameToString = decltype(FNameToString)(ToStringAddress);
-	GetFirstPlayerController = decltype(GetFirstPlayerController)(GetFirstPlayerControllerAddress);
-	SpawnActor = decltype(SpawnActor)(SpawnActorAddress);
-	StaticConstructObjectInternal = decltype(StaticConstructObjectInternal)(StaticConstructObjectInternalAddress);
-	StaticLoadObjectInternal = decltype(StaticLoadObjectInternal)(StaticLoadObjectInternalAddress);
-	TickPlayerInput = decltype(TickPlayerInput)(TickPlayerInputAddress);
-	FreeInternal = decltype(FreeInternal)(FreeInternalAddress);
-	ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[CONSTS::PROCESS_EVENT_INDEX]);
+	// we have been injected into a build running 4.20
+	if (UE_4_20_GObjectsAddress &&
+		UE_4_20_ToStringAddress &&
+		UE_4_20_GetFirstPlayerController &&
+		UE_4_20_SpawnActorFromClass &&
+		UE_4_20_ConstructObject)
+	{
+		auto offset = *(int32_t*)(UE_4_20_GObjectsAddress + 3);
+		auto fnAddress = UE_4_20_GObjectsAddress + 7 + offset;
+		
+		ObjObjects = decltype(ObjObjects)(fnAddress);
+		FNameToString = decltype(FNameToString)(UE_4_20_ToStringAddress);
+		GetFirstPlayerController = decltype(GetFirstPlayerController)(UE_4_20_GetFirstPlayerController);
+		SpawnActor = decltype(SpawnActor)(UE_4_20_SpawnActorFromClass);
+		StaticConstructObjectInternal = decltype(StaticConstructObjectInternal)(UE_4_20_ConstructObject);
+		ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[CONSTS::PROCESS_EVENT_INDEX]); // could change
+
+		printf("Setup everything for UE 4.20!\n");
+	}
+
 
 	Game::Setup();
 }

@@ -161,7 +161,7 @@ struct FName
 
 		std::wstring ret(temp.ToWString());
 
-		FreeInternal((void*)temp.ToWString());
+		//FreeInternal((void*)temp.ToWString());
 
 		return ret;
 	}

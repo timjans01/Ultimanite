@@ -126,20 +126,23 @@ namespace Game
 		Globals::Controller = GetFirstPlayerController(GetWorld());
 		Globals::GameState = FindObject(L"Athena_GameState_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameState_C");
 		Globals::GameMode = FindObject(L"Athena_GameMode_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameMode_C");
-
+		
+		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ -122398, -103873.02, 3962.51 }, {});
 		Globals::CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
-
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{-122398, -103873.02, 3962.51}, {});
+		
+		Globals::PlayerState = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + __int64(Offsets::PlayerStateOffset));
 
 		Globals::GamePlayStatics = FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics");
 
-		Player::Possess(Globals::Controller, Globals::Pawn);
+		UObject* FortEngine = FindObject(L"FortEngine /Engine/Transient.FortEngine_");
 
-		struct AthenaGameState
-		{
-			unsigned char Unk00[0x1cb0];
-			EAthenaGamePhase GamePhase;
-		};
+		UObject* GameViewport = *reinterpret_cast<UObject**>(__int64(FortEngine) + __int64(Offsets::GameViewportOffset));
+		UObject** CurrentConsole = reinterpret_cast<UObject**>(__int64(GameViewport) + __int64(Offsets::ViewportConsoleOffset));
+		UObject* NewConsole = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.Console"), GameViewport, 0, 0, 0, 0, 0, 0, 0);
+
+		*CurrentConsole = NewConsole;
+
+		Player::Possess(Globals::Controller, Globals::Pawn);
 
 		// TODO: Move to ConsoleCommandHook
 
@@ -153,6 +156,7 @@ namespace Game
 			UObject* QuickBar;
 		};
 
+		/*
 		Globals::FortInventory = reinterpret_cast<InventoryPointer*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::WorldInventoryOffset)->Inventory;
 		Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{29481.783, 40562.594, 1237.150}, {});
 
@@ -170,12 +174,20 @@ namespace Game
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03"), EFortQuickBars::Primary, 1, 1);
 			AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_RC_Rocket_Athena_SR_T03"), EFortQuickBars::Primary, 2, 1);
 		}
+		*/
+
+		struct AthenaGameState
+		{
+			unsigned char Unk00[0x1cb0];
+			EAthenaGamePhase GamePhase;
+		};
 
 		((AthenaGameState*)Globals::GameState)->GamePhase = EAthenaGamePhase::Aircraft;
 
 		GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
-
+		
 		Player::ServerReadyToStartMatch(Globals::Controller);
+		//ProcessEvent(Globals::GameMode, FindObject(L"Function /Script/Engine.GameMode.StartMatch"), nullptr);
 
 		*reinterpret_cast<int*>(__int64(Globals::Controller) + __int64(Offsets::OverriddenBackpackSizeOffset)) = 999;
 
@@ -184,28 +196,15 @@ namespace Game
 
 		bInfiniteAmmoBitField[0] = 1; //bInfiniteAmmo = true
 
-		auto StrongMyHero = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::StrongMyHeroOffset);
-		auto CharacterParts = *reinterpret_cast<TArray<UObject*>*>(reinterpret_cast<uintptr_t>(StrongMyHero) + Offsets::CharacterPartsOffset);
+		UObject* HeadCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
+		UObject* BodyCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
 
-		std::vector<UObject*> CharacterPartsVector;
-
-		for (auto i = 0; i < CharacterParts.Num(); i++) CharacterPartsVector.push_back(CharacterParts[i]);
-
-		for (auto i = 0; i < CharacterPartsVector.size(); i++)
+		if (HeadCharacterPart && BodyCharacterPart)
 		{
-			auto AdditionalData = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(CharacterPartsVector[i]) + Offsets::AdditionalDataOffset);
-			if (AdditionalData->IsA(FindObject(L"Class /Script/FortniteGame.CustomCharacterHeadData")))
-			{
-				Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Head, CharacterPartsVector[i]);
-			}
-			else if (AdditionalData->IsA(FindObject(L"Class /Script/FortniteGame.CustomCharacterBodyPartData")))
-			{
-				Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Body, CharacterPartsVector[i]);
-			}
-			else if (AdditionalData->IsA(FindObject(L"Class /Script/FortniteGame.CustomCharacterHatData")))
-			{
-				Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Hat, CharacterPartsVector[i]);
-			}
+			*reinterpret_cast<UObject**>(__int64(Globals::PlayerState) + __int64(Offsets::CharacterPartsOffset)) = HeadCharacterPart;
+			*reinterpret_cast<UObject**>(__int64(Globals::PlayerState) + __int64(Offsets::CharacterPartsOffset) + __int64(8)) = BodyCharacterPart;
+
+			ProcessEvent(Globals::PlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
 		}
 	}
 
@@ -303,9 +302,9 @@ namespace Game
 			{
 				HandleInventoryDrop(Params);
 			}
-
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
+				/*
 				FSlateBrush EmptyBrush = Kismet::NoResourceBrush();
 
 				reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapBackgroundBrushOffset))->ObjectResource = StaticLoadObjectEasy(FindObject(L"Class /Script/Engine.Texture2D"), L"/Game/Athena/HUD/MiniMap/MiniMapAthena.MiniMapAthena");
@@ -316,25 +315,29 @@ namespace Game
 				*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
 				*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset)) = EmptyBrush; // MinimapCircleBrush
 				*reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset)) = EmptyBrush; // MinimapCircleBrush
+				*/
 
 				//Spawning the player on the start island. (COMMENTED OUT UNTIL THE RELEASE)
 				//Globals::Pawn->Call(FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo"), FVector{ -124398, -103873.02, 3962.51 });
 
 				auto LODS = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
+
 				for (int i = 0; i < LODS.Num(); i++)
 				{
 					AActor::Destroy(LODS[i]);
 				}
 
-
-				auto NetDebugUi = FindObject(L"NetDebugUI_C /Engine/Transient.FortEngine_0.FortGameInstance_0.AthenaHUD_C_0.WidgetTree_0.NetDebugContainer.WidgetTree_0.NetDebugUI");
-				Widget::RemoveFromViewport(NetDebugUi);
+				auto NetDebugUI = FindObject(L"NetDebugUI_C /Engine/Transient.FortEngine_0.FortGameInstance_0.AthenaHUD_C_0.WidgetTree_0.NetDebugContainer.WidgetTree_0.NetDebugUI");
+				
+				if (NetDebugUI)
+				{
+					Widget::RemoveFromViewport(NetDebugUI);
+				}
 
 				auto bHasServerFinishedLoading = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bHasServerFinishedLoadingOffset);
 				*bHasServerFinishedLoading = true;
 
 				Player::ServerSetClientHasFinishedLoading(Globals::Controller);
-
 				PlayerState::OnRep_SquadId();
 
 				Globals::World = GetWorld();
@@ -410,6 +413,30 @@ namespace Game
 						}
 					}
 				}
+			}
+
+			if (wcsstr(FunctionName.c_str(), L"CheatScript"))
+			{
+				std::wstring ScriptName = ((FString*)Params)->ToWString();
+				std::wstring Arg;
+
+				if (ScriptName.find(L" ") != std::wstring::npos)
+				{
+					Arg = ScriptName.substr(ScriptName.find(L" ") + 1);
+				}
+
+				
+				/*
+				if (wcsstr(ScriptName->ToWString(), L"EquipWeapon"))
+				{
+					SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/Standard_High/WID_Shotgun_Standard_SR_Ore_T04.WID_Shotgun_Standard_SR_Ore_T04"), 1, AActor::GetLocation(Globals::Pawn));
+				}
+
+				if (wcsstr(ScriptName->ToWString(), L"EquipVehicle"))
+				{
+					printf("EquipVehicle\n");
+				}
+				*/
 			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerExecuteInventoryItem"))
@@ -514,7 +541,7 @@ namespace Game
 		DetourUpdateThread(GetCurrentThread());
 
 		DetourAttach(&(void*&)ProcessEvent, Hooks::ProcessEventDetour);
-		DetourAttach(&(void*&)TickPlayerInput, Hooks::TickPlayerInputHook);
+		//DetourAttach(&(void*&)TickPlayerInput, Hooks::TickPlayerInputHook);
 
 		DetourTransactionCommit();
 
