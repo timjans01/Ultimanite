@@ -37,7 +37,7 @@ namespace Game
 			if (IsMatchingGuid(Player::GetGuid(CurrentItemInstance), Guid))
 			{
 				// if the GUIDs match, equip the weapon
-				Player::EquipWeaponDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
+				Player::EquipWeaponByDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
 			}
 		}
 	}
@@ -53,6 +53,8 @@ namespace Game
 		};
 
 		auto CurrentParams = (ServerHandlePickupParams*)Params;
+
+		auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset));
 
 		if (CurrentParams->Pickup != nullptr)
 		{
@@ -80,9 +82,9 @@ namespace Game
 						FGuid CurrentFocusedGUID = QuickbarSlots[*CurrentFocusedSlot].Items[0];
 
 						// loop through item entries and see which item matches the current focused slot GUID
-						for (int j = 0; i < Globals::ItemInstances->Num(); j++)
+						for (int j = 0; i < ItemInstances->Num(); j++)
 						{
-							auto ItemInstance = Globals::ItemInstances->operator[](j);
+							auto ItemInstance = ItemInstances->operator[](j);
 
 							auto ItemEntryDefinition = reinterpret_cast<UObject**>(__int64(ItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
 							auto ItemEntryGuid = reinterpret_cast<FGuid*>(__int64(ItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(Offsets::ItemGuidOffset));
@@ -299,10 +301,16 @@ namespace Game
 				Globals::FortInventory = reinterpret_cast<InventoryPointer*>(__int64(Globals::Controller) + __int64(Offsets::WorldInventoryOffset))->Inventory;
 				Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ -122398, -103873.02, 3962.51 }, {});
 
+				// setup quickbar pointer
+				reinterpret_cast<QuickBarPointer*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::QuickBarOffset)->QuickBar = Globals::Quickbar;
+
+				// set owner of quickbar to current controller
+				Player::SetOwner(Globals::Quickbar, Globals::Controller);
+
+				// test only
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
-
-				SpawnPickupAtLocation(FindObject(L"FortWeaponRangedItemDefinition /Game/Items/Weapons/Ranged/Shotgun/Tactical/WID_Shotgun_Tactical_UC_Ore_T01.WID_Shotgun_Tactical_UC_Ore_T01"), 1, FVector{ -122398, -103873.02, 3962.51 });
-
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03"), EFortQuickBars::Primary, 1, 1);
+				
 				bDroppedLoadingScreen = true;
 			}
 

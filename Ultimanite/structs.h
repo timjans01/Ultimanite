@@ -322,6 +322,73 @@ struct GObjects
 	DWORD ObjectCount;
 };
 
+struct FWeakObjectPtr
+{
+public:
+	inline bool SerialNumbersMatch(FUObjectItem* ObjectItem) const
+	{
+		return ObjectItem->SerialNumber == ObjectSerialNumber;
+	}
+
+	bool IsValid() const;
+
+	UObject* Get() const;
+
+	int32_t ObjectIndex;
+	int32_t ObjectSerialNumber;
+};
+
+template<class T, class TWeakObjectPtrBase = FWeakObjectPtr>
+struct TWeakObjectPtr : public TWeakObjectPtrBase
+{
+public:
+	inline T* Get() const
+	{
+		return (T*)TWeakObjectPtrBase::Get();
+	}
+
+	inline T& operator*() const
+	{
+		return *Get();
+	}
+
+	inline T* operator->() const
+	{
+		return Get();
+	}
+
+	inline bool IsValid() const
+	{
+		return TWeakObjectPtrBase::IsValid();
+	}
+};
+
+template<typename TObjectID>
+class TPersistentObjectPtr
+{
+public:
+	FWeakObjectPtr WeakPtr;
+	int32_t TagAtLastTest;
+	TObjectID ObjectID;
+};
+
+struct FSoftObjectPath
+{
+	FName AssetPathName;
+	FString SubPathString;
+};
+
+class FSoftObjectPtr : public TPersistentObjectPtr<FSoftObjectPath>
+{
+
+};
+
+template<typename ObjectType>
+class TSoftObjectPtr : FSoftObjectPtr
+{
+
+};
+
 struct FKey {
 	struct FName KeyName; // 0x00(0x08)
 	char UnknownData_8[0x10]; // 0x08(0x10)

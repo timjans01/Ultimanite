@@ -64,6 +64,10 @@ namespace Offsets
 	DWORD GameViewportOffset;
 	DWORD ViewportConsoleOffset;
 	DWORD CurrentPlaylistDataOffset;
+	DWORD WeaponActorClassOffset;
+	DWORD WeaponDataOffset;
+	DWORD ItemEntryGuidOffset;
+	DWORD AmmoCountOffset;
 }
 
 static void SetupOffsets()
@@ -111,6 +115,10 @@ static void SetupOffsets()
 	Offsets::ViewportConsoleOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.ViewportConsole");
 	Offsets::CurrentPlaylistDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortGameStateAthena.CurrentPlaylistData");
 	Offsets::InventoryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortInventory.Inventory");
+	Offsets::WeaponActorClassOffset = FindOffset(L"SoftClassProperty /Script/FortniteGame.FortWeaponItemDefinition.WeaponActorClass");
+	Offsets::WeaponDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortWeapon.WeaponData");
+	Offsets::ItemEntryGuidOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWeapon.ItemEntryGuid");
+	Offsets::AmmoCountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortWeapon.AmmoCount");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -173,7 +181,51 @@ namespace Kismet
 
 		return ReturnValue;
 	}
+
+	static UObject* Conv_SoftClassReferenceToClass(TSoftObjectPtr<UObject*> SoftPtr)
+	{
+		static UObject* Default__KismetSystemLibrary = FindObject(L"KismetSystemLibrary /Script/Engine.Default__KismetSystemLibrary");
+		static UObject* Conv_SoftClassReferenceToClass = FindObject(L"Function /Script/Engine.KismetSystemLibrary.Conv_SoftClassReferenceToClass");
+
+		struct
+		{
+			TSoftObjectPtr<UObject*> SoftClassReference;
+			UObject* Class;
+		} Params;
+
+		Params.SoftClassReference = SoftPtr;
+
+		ProcessEvent(Default__KismetSystemLibrary, Conv_SoftClassReferenceToClass, &Params);
+
+		return Params.Class;
+	}
 }
+
+namespace Weapon
+{
+	static void OnRep_ReplicatedWeaponData(UObject* Weapon)
+	{
+		static UObject* OnRep_ReplicatedWeaponData = FindObject(L"Function /Script/FortniteGame.FortWeapon.OnRep_ReplicatedWeaponData");
+
+		ProcessEvent(Weapon, OnRep_ReplicatedWeaponData, nullptr);
+	}
+
+	static void ClientGivenTo(UObject* Weapon, UObject* Pawn)
+	{
+		static UObject* ClientGivenTo = FindObject(L"Function /Script/FortniteGame.FortWeapon.ClientGivenTo");
+
+		ProcessEvent(Weapon, ClientGivenTo, &Pawn);
+	}
+
+	static void OnRep_AmmoCount(UObject* Weapon)
+	{
+		static UObject* OnRep_AmmoCount = FindObject(L"Function /Script/FortniteGame.FortWeapon.OnRep_AmmoCount");
+		int OldAmmoCount = 0;
+
+		ProcessEvent(Weapon, OnRep_AmmoCount, &OldAmmoCount);
+	}
+}
+
 
 namespace GameMode
 {
@@ -376,6 +428,39 @@ namespace Player
 		return ReturnValue;
 	}
 
+	static void ClientInternalEquipWeapon(UObject* Pawn, UObject* FortWeapon)
+	{
+		static UObject* ClientInternalEquipWeapon = FindObject(L"Function /Script/FortniteGame.FortPawn.ClientInternalEquipWeapon");
+
+		ProcessEvent(Pawn, ClientInternalEquipWeapon, &FortWeapon);
+	}
+
+	static void EquipWeaponByDefinition(UObject* Pawn, UObject* WeaponDefinition, FGuid ItemGuid)
+	{
+		TSoftObjectPtr<UObject*>* SoftWeaponActorClass = reinterpret_cast<TSoftObjectPtr<UObject*>*>(__int64(WeaponDefinition) + __int64(0x708)); // TODO: change 0x708
+		UObject* WeaponActorClass = Kismet::Conv_SoftClassReferenceToClass(*SoftWeaponActorClass);
+
+		if (WeaponActorClass)
+		{
+			UObject* CurrentWeaponActor = SpawnActorEasy(GetWorld(), WeaponActorClass, {}, {});
+
+			// set owner of weapon actor
+			Player::SetOwner(CurrentWeaponActor, Globals::Pawn);
+
+			// set weapon definition and GUID
+			*reinterpret_cast<UObject**>(__int64(CurrentWeaponActor) + __int64(Offsets::WeaponDataOffset)) = WeaponDefinition;
+			*reinterpret_cast<FGuid*>(__int64(CurrentWeaponActor) + __int64(Offsets::ItemEntryGuidOffset)) = ItemGuid;
+
+			// replicate weapon data and ammo, then give weapon to pawn
+			Weapon::OnRep_ReplicatedWeaponData(CurrentWeaponActor);
+			Weapon::ClientGivenTo(CurrentWeaponActor, Pawn);
+
+			// equip weapon
+			ClientInternalEquipWeapon(Pawn, CurrentWeaponActor);
+		}
+	}
+
+	// deprecated, use EquipWeaponByDefinition
 	static UObject* EquipWeaponDefinition(UObject* Target, UObject* ItemDefinition, FGuid ItemGuid)
 	{
 		static UObject* GetItemGuid = FindObject(L"Function /Script/FortniteGame.FortPawn.EquipWeaponDefinition");
