@@ -32,6 +32,7 @@ namespace Offsets
 	DWORD PlayerStateOffset;
 	DWORD FortItemEntryOffset;
 	DWORD PrimaryPickupItemEntryOffset;
+	DWORD InventoryOffset;
 	DWORD CountOffset;
 	DWORD ItemDefinitionOffset;
 	DWORD CharacterPartsOffset;
@@ -109,6 +110,7 @@ static void SetupOffsets()
 	Offsets::GameViewportOffset = FindOffset(L"ObjectProperty /Script/Engine.Engine.GameViewport");
 	Offsets::ViewportConsoleOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.ViewportConsole");
 	Offsets::CurrentPlaylistDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortGameStateAthena.CurrentPlaylistData");
+	Offsets::InventoryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortInventory.Inventory");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -128,6 +130,16 @@ struct QuickbarSlot
 	TArray<struct FGuid> Items;
 	bool bEnabled;
 	char Unk00[0x7];
+};
+
+struct InventoryPointer
+{
+	UObject* Inventory;
+};
+
+struct QuickBarPointer
+{
+	UObject* QuickBar;
 };
 
 namespace Kismet
@@ -180,10 +192,17 @@ namespace RuntimeOptions
 		static UObject* Default__FortRuntimeOptions = FindObject(L"FortRuntimeOptions /Script/FortniteGame.Default__FortRuntimeOptions");
 		static UObject* GetGameVersion = FindObject(L"Function /Script/FortniteGame.FortRuntimeOptions.GetGameVersion");
 		
-		FString GameVersion;
-		ProcessEvent(Default__FortRuntimeOptions, GetGameVersion, &GameVersion);
+		if (GetGameVersion)
+		{
+			FString GameVersion;
+			ProcessEvent(Default__FortRuntimeOptions, GetGameVersion, &GameVersion);
 
-		return GameVersion;
+			return GameVersion;
+		}
+		else
+		{
+			return L"Unknown";
+		}
 	}
 }
 
@@ -522,20 +541,22 @@ namespace GameplayStatics
 {
 	static TArray<UObject*> GetAllActorsOfClass(UObject* Class)
 	{
-		struct Parameters
+		static UObject* Default__GameplayStatics = FindObject(L"GameplayStatics /Script/Engine.Default__GameplayStatics");
+		static UObject* GetAllActorsOfClass = FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass");
+
+		struct
 		{
 			UObject* World;
 			UObject* Class;
-			TArray<UObject*> Return;
-		};
+			TArray<UObject*> ReturnValue;
+		} Params;
 
-		Parameters parameters;
-		parameters.World = GetWorld();
-		parameters.Class = Class;
+		Params.World = GetWorld();
+		Params.Class = Class;
 
-		ProcessEvent(Globals::GamePlayStatics, FindObject(L"Function /Script/Engine.GameplayStatics.GetAllActorsOfClass"), &parameters);
+		ProcessEvent(Default__GameplayStatics, GetAllActorsOfClass, &Params);
 
-		return parameters.Return;
+		return Params.ReturnValue;
 	}
 }
 
@@ -571,4 +592,68 @@ namespace Widget
 
 		ProcessEvent(Target, RemoveFromViewport, nullptr);
 	}
+}
+
+namespace Inventory
+{
+	static UObject* CreateItem(UObject* ItemDefinition, int Count)
+	{
+		UObject* TemporaryItemInstance = Player::CreateTemporaryItemInstanceBP(ItemDefinition, Count, 1);
+
+		if (TemporaryItemInstance)
+		{
+			Player::SetOwningControllerForTemporaryItem(TemporaryItemInstance, Globals::Controller);
+		}
+
+		int* CurrentCount = reinterpret_cast<int*>(__int64(TemporaryItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(0xC));
+		*CurrentCount = Count;
+
+		return TemporaryItemInstance;
+	}
+
+	static void UpdateInventory()
+	{
+		static auto HandleWorldInventoryLocalUpdate = FindObject(L"Function /Script/FortniteGame.FortPlayerController.HandleWorldInventoryLocalUpdate");
+		static auto HandleInventoryLocalUpdate = FindObject(L"Function /Script/FortniteGame.FortInventory.HandleInventoryLocalUpdate");
+		static auto OnRep_QuickBar = FindObject(L"Function /Script/FortniteGame.FortPlayerController.OnRep_QuickBar");
+		static auto OnRep_SecondaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_SecondaryQuickBar");
+		static auto OnRep_PrimaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_PrimaryQuickBar");
+
+		ProcessEvent(Globals::FortInventory, HandleInventoryLocalUpdate, nullptr);
+		ProcessEvent(Globals::Controller, HandleWorldInventoryLocalUpdate, nullptr);
+		ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
+		ProcessEvent(Globals::Quickbar, OnRep_SecondaryQuickBar, nullptr);
+		ProcessEvent(Globals::Quickbar, OnRep_PrimaryQuickBar, nullptr);
+	}
+
+	static void AddItemToInventory(UObject* FortItem, EFortQuickBars QuickbarIndex, int Slot)
+	{
+		struct ItemEntrySize
+		{
+			unsigned char Unk00[0xD0]; // Padding. TODO: DO DYNAMICALLY OR EVERYTHING WILL BREAK
+		};
+
+		auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset));
+		auto ItemEntries = reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset));
+
+		auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
+
+		ItemEntries->Add(*ItemEntry);
+		ItemInstances->Add(FortItem);
+
+		Player::ServerAddItemInternal(Globals::Quickbar, Player::GetItemGuid(FortItem), QuickbarIndex, Slot);
+	}
+
+	static void AddItemToInventoryWithUpdate(UObject* ItemDef, EFortQuickBars QuickbarIndex, int Slot, int Count)
+	{
+		UObject* ItemInstance = CreateItem(ItemDef, Count);
+
+		if (ItemInstance)
+		{
+			AddItemToInventory(ItemInstance, QuickbarIndex, Slot);
+		}
+
+		UpdateInventory();
+	}
+
 }

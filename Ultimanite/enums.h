@@ -53,14 +53,14 @@ enum class ESpawnActorCollisionHandlingMethod : uint8_t
 
 enum class EAthenaGamePhase : uint8_t
 {
-    None,
-    Setup,
-    Warmup,
-    Aircraft,
-    SafeZones,
-    EndGame,
-    Count,
-    EAthenaGamePhase_MAX
+    None = 0,
+    Setup = 1,
+    Warmup = 2,
+    Aircraft = 3,
+    SafeZones = 4,
+    EndGame = 5,
+    Count = 6,
+    EAthenaGamePhase_MAX = 7
 };
 
 enum class EFortCustomPartType : uint8_t

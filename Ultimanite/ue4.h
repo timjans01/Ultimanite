@@ -18,6 +18,13 @@ static UObject* (*StaticLoadObjectInternal)(UObject* ObjectClass, UObject* InOut
 
 inline void (*TickPlayerInput)(const UObject* PlayerController, const float DeltaSeconds, const bool bGamePaused);
 
+enum class EEngineVersion : uint8_t
+{
+	UE_4_20 = 0,
+	UE_4_21 = 1,
+	None = 2
+};
+
 inline void NumChunks(int* start, int* end)
 {
 	int cStart = 0, cEnd = 0;
@@ -94,7 +101,7 @@ static UObject* FindObjectById(uint32_t Id)
 	return nullptr;
 }
 
-template <typename T = UObject*> static T FindObject(std::wstring ObjectToFind)
+template <typename T = UObject*> static T FindObject(std::wstring ObjectToFind, bool IsEqual = false)
 {
 	int ObjectCount = GlobalObjects ? GlobalObjects->ObjectCount : ObjObjects->NumElements;
 
@@ -107,9 +114,19 @@ template <typename T = UObject*> static T FindObject(std::wstring ObjectToFind)
 			continue;
 		}
 
-		if (wcsstr(Object->GetFullName().c_str(), ObjectToFind.c_str()))
+		if (IsEqual)
 		{
-			return (T)Object;
+			if (Object->GetFullName() == ObjectToFind)
+			{
+				return (T)Object;
+			}
+		}
+		else
+		{
+			if (wcsstr(Object->GetFullName().c_str(), ObjectToFind.c_str()))
+			{
+				return (T)Object;
+			}
 		}
 	}
 
@@ -118,7 +135,7 @@ template <typename T = UObject*> static T FindObject(std::wstring ObjectToFind)
 
 static DWORD FindOffset(std::wstring OffsetToFind)
 {
-	auto Object = FindObject(OffsetToFind);
+	auto Object = FindObject(OffsetToFind, true);
 
 	if (Object)
 	{
