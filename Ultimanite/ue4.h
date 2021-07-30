@@ -164,9 +164,9 @@ inline void DumpObjects()
 
 static UObject* GetWorld()
 {
-	auto FortEngine = FindObject(L"FortEngine_");
-	auto GameViewportOffset = FindOffset(L"ObjectProperty /Script/Engine.Engine.GameViewport");
-	auto WorldOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.World");
+	static auto FortEngine = FindObject(L"FortEngine_");
+	static auto GameViewportOffset = FindOffset(L"ObjectProperty /Script/Engine.Engine.GameViewport");
+	static auto WorldOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.World");
 
 	UObject* GameViewport = *reinterpret_cast<UObject**>(__int64(FortEngine) + __int64(GameViewportOffset));
 	UObject** World = reinterpret_cast<UObject**>(__int64(GameViewport) + __int64(WorldOffset));

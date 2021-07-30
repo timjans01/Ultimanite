@@ -40,7 +40,6 @@ namespace Offsets
 	DWORD bWantsToSprintOffset;
 	DWORD bInAircraftOffset;
 	DWORD bInfiniteAmmo;
-	DWORD CurrentWeapon;
 	DWORD SlotsOffset;
 	DWORD PrimaryQuickbarOffset;
 	DWORD MinimapCircleBrushOffset;
@@ -68,6 +67,11 @@ namespace Offsets
 	DWORD WeaponDataOffset;
 	DWORD ItemEntryGuidOffset;
 	DWORD AmmoCountOffset;
+	DWORD CurrentWeaponOffset;
+	DWORD AbilitySystemComponentOffset;
+	DWORD DurationPolicyOffset;
+	DWORD GrantedAbilitiesOffset;
+	DWORD AbilityOffset;
 }
 
 static void SetupOffsets()
@@ -89,7 +93,7 @@ static void SetupOffsets()
 	Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
 	Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
 	Offsets::bInfiniteAmmo = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bInfiniteAmmo");
-	Offsets::CurrentWeapon = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPawn.CurrentWeapon");
+	Offsets::CurrentWeaponOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPawn.CurrentWeapon");
 	Offsets::bInAircraftOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerStateAthena.bInAircraft");
 	Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
 	Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
@@ -119,16 +123,30 @@ static void SetupOffsets()
 	Offsets::WeaponDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortWeapon.WeaponData");
 	Offsets::ItemEntryGuidOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWeapon.ItemEntryGuid");
 	Offsets::AmmoCountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortWeapon.AmmoCount");
+	Offsets::AbilitySystemComponentOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPawn.AbilitySystemComponent");
+	Offsets::DurationPolicyOffset = FindOffset(L"EnumProperty /Script/GameplayAbilities.GameplayEffect.DurationPolicy");
+	Offsets::GrantedAbilitiesOffset = FindOffset(L"ArrayProperty /Script/GameplayAbilities.GameplayEffect.GrantedAbilities");
+	Offsets::AbilityOffset = FindOffset(L"ClassProperty /Script/GameplayAbilities.GameplayAbilitySpecDef.Ability");
 }
 
 enum class EFortQuickBars : uint8_t
 {
-	Primary, Secondary, Max_None, EFortQuickBars_MAX,
+	Primary,
+	Secondary,
+	Max_None,
+	EFortQuickBars_MAX
+};
+
+enum class EGameplayEffectDurationType : uint8_t
+{
+	Instant,
+	Infinite,
+	HasDuration,
+	EGameplayEffectDurationType_MAX
 };
 
 struct FSlateBrush
 {
-	// lets really hope this doesn't change on any updates lmao
 	unsigned char Unk00[0x48];
 	UObject* ObjectResource; // 0x08
 };
@@ -169,6 +187,24 @@ namespace Kismet
 		ProcessEvent(lib, func, &params);
 
 		return params.ret;
+	}
+
+	static auto FNameToFString(FName InName)
+	{
+		static auto lib = FindObject(L"KismetStringLibrary /Script/Engine.Default__KismetStringLibrary");
+		static auto func = FindObject(L"Function /Script/Engine.KismetStringLibrary.Conv_NameToString");
+
+		struct
+		{
+			FName In;
+			FString ret;
+		} Params;
+
+		Params.In = InName;
+
+		ProcessEvent(lib, func, &Params);
+
+		return Params.ret;
 	}
 
 	static FSlateBrush NoResourceBrush()
@@ -225,7 +261,6 @@ namespace Weapon
 		ProcessEvent(Weapon, OnRep_AmmoCount, &OldAmmoCount);
 	}
 }
-
 
 namespace GameMode
 {
@@ -383,6 +418,41 @@ namespace Player
 		ProcessEvent(Item, SetOwningControllerForTemporaryItem, &Controller);
 	}
 
+	static void BP_ApplyGameplayEffectToSelf(UObject* AbilitySystemComponent, UObject* GameplayEffectClass)
+	{
+		static UObject* BP_ApplyGameplayEffectToSelf = FindObject(L"Function /Script/GameplayAbilities.AbilitySystemComponent.BP_ApplyGameplayEffectToSelf");
+	
+		struct
+		{
+			UObject* GameplayEffectClass;
+			float Level;
+			FGameplayEffectContextHandle EffectContext;
+			FActiveGameplayEffectHandle ret;
+		} Params;
+
+		Params.EffectContext = FGameplayEffectContextHandle();
+		Params.GameplayEffectClass = GameplayEffectClass;
+		Params.Level = 1.0;
+
+		ProcessEvent(AbilitySystemComponent, BP_ApplyGameplayEffectToSelf, &Params);
+	}
+
+	static void GrantGameplayAbility(UObject* AbilitySystemComponent, UObject* GameplayAbilityClass)
+	{
+		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
+
+		TArray<struct FGameplayAbilitySpecDef>* GrantedAbilities = reinterpret_cast<TArray<struct FGameplayAbilitySpecDef>*>(__int64(DefaultGameplayEffect) + __int64(Offsets::GrantedAbilitiesOffset));
+
+		// overwrite current gameplay ability with the one we want to activate
+		GrantedAbilities->operator[](0).Ability = GameplayAbilityClass;
+
+		// give this gameplay effect an infinite duration
+		*reinterpret_cast<EGameplayEffectDurationType*>(__int64(DefaultGameplayEffect) + __int64(Offsets::DurationPolicyOffset)) = EGameplayEffectDurationType::Infinite;
+
+		// apply modified gameplay effect to ability system component
+		BP_ApplyGameplayEffectToSelf(AbilitySystemComponent, FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C"));
+	}
+
 	static void SetOwner(UObject* TargetActor, UObject* NewOwner)
 	{
 		static UObject* SetOwner = FindObject(L"Function /Script/Engine.Actor.SetOwner");
@@ -437,7 +507,7 @@ namespace Player
 
 	static void EquipWeaponByDefinition(UObject* Pawn, UObject* WeaponDefinition, FGuid ItemGuid)
 	{
-		TSoftObjectPtr<UObject*>* SoftWeaponActorClass = reinterpret_cast<TSoftObjectPtr<UObject*>*>(__int64(WeaponDefinition) + __int64(0x708)); // TODO: change 0x708
+		TSoftObjectPtr<UObject*>* SoftWeaponActorClass = reinterpret_cast<TSoftObjectPtr<UObject*>*>(__int64(WeaponDefinition) + __int64(Offsets::WeaponActorClassOffset)); // TODO: change 0x708
 		UObject* WeaponActorClass = Kismet::Conv_SoftClassReferenceToClass(*SoftWeaponActorClass);
 
 		if (WeaponActorClass)
@@ -679,6 +749,11 @@ namespace Widget
 	}
 }
 
+namespace Ability
+{
+
+}
+
 namespace Inventory
 {
 	static UObject* CreateItem(UObject* ItemDefinition, int Count)
@@ -709,6 +784,10 @@ namespace Inventory
 		ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
 		ProcessEvent(Globals::Quickbar, OnRep_SecondaryQuickBar, nullptr);
 		ProcessEvent(Globals::Quickbar, OnRep_PrimaryQuickBar, nullptr);
+	}
+
+	static int test()
+	{
 	}
 
 	static void AddItemToInventory(UObject* FortItem, EFortQuickBars QuickbarIndex, int Slot)

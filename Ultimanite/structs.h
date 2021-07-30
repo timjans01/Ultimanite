@@ -245,6 +245,16 @@ struct UField : UObject
     UField* Next;
 };
 
+struct UProperty : UField
+{
+	uint32_t ArrayDim; // 0x30
+	uint32_t ElementSize; // 0x34
+	uint64_t PropertyFlags; // 0x38
+	char pad_40[4]; // 0x40
+	uint32_t Offset; // 0x44
+	char pad_48[0x70 - 0x30 - 0x18];
+};
+
 struct UStruct : UField
 {
     UStruct* Super; // 0x30
@@ -461,4 +471,22 @@ public:
 
 private:
 	uint8_t value;
+};
+
+struct FActiveGameplayEffectHandle
+{
+	int Handle; // 0x00(0x04)
+	bool bPassedFiltersAndWasExecuted; // 0x04(0x01)
+	char UnknownData_5[0x3]; // 0x05(0x03)
+};
+
+struct FGameplayEffectContextHandle
+{
+	char UnknownData_0[0x18]; // 0x00(0x18)
+};
+
+struct FGameplayAbilitySpecDef
+{
+	UObject* Ability;
+	unsigned char Unk00[0x94];
 };

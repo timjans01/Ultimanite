@@ -253,6 +253,33 @@ namespace Game
 				}
 			}
 
+			if (GetAsyncKeyState(VK_F1))
+			{
+				UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(Globals::Pawn) + __int64(Offsets::AbilitySystemComponentOffset));
+
+				if (AbilitySystemComponent)
+				{
+					printf("AbilitySystemComponent: %ws\n", (*AbilitySystemComponent)->GetFullName().c_str());
+
+					UObject* DefaultAbility = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C");
+
+					if (DefaultAbility)
+					{
+						printf("DefaultAbility: %ws\n", DefaultAbility->GetFullName().c_str());
+
+						Player::GrantGameplayAbility(*AbilitySystemComponent, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
+					}
+					else
+					{
+						printf("No DefaultAbility!\n");
+					}
+				}
+				else
+				{
+					printf("No AbilitySystemComponent!\n");
+				}
+			}
+
 			// called when an item is dropped from the inventory
 			if (wcsstr(FunctionName.c_str(), L"ServerAttemptInventoryDrop"))
 			{
@@ -275,9 +302,9 @@ namespace Game
 			{
 				TArray<UObject*> FortHLODSMActors = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
 
+				// destroy all FortHLODSMactor instances to remove HLODs
 				for (int i = 0; i < FortHLODSMActors.Num(); i++)
 				{
-					// destroy all FortHLODSMactor instances to remove HLODs
 					AActor::Destroy(FortHLODSMActors[i]);
 				}
 
@@ -302,15 +329,23 @@ namespace Game
 				Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ -122398, -103873.02, 3962.51 }, {});
 
 				// setup quickbar pointer
-				reinterpret_cast<QuickBarPointer*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::QuickBarOffset)->QuickBar = Globals::Quickbar;
+				reinterpret_cast<QuickBarPointer*>(__int64(Globals::Controller) + __int64(Offsets::QuickBarOffset))->QuickBar = Globals::Quickbar;
 
 				// set owner of quickbar to current controller
 				Player::SetOwner(Globals::Quickbar, Globals::Controller);
 
-				// test only
+				// give gameplay abilities
+				UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(Globals::Pawn) + __int64(Offsets::AbilitySystemComponentOffset));
+
+				if (AbilitySystemComponent)
+				{
+					Player::GrantGameplayAbility(*AbilitySystemComponent, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
+					Player::GrantGameplayAbility(*AbilitySystemComponent, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
+				}
+
+				// give default items
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponRangedItemDefinition /Game/Athena/Items/Weapons/WID_Assault_AutoHigh_Athena_SR_Ore_T03.WID_Assault_AutoHigh_Athena_SR_Ore_T03"), EFortQuickBars::Primary, 1, 1);
-				
+
 				bDroppedLoadingScreen = true;
 			}
 
