@@ -16,6 +16,7 @@ namespace Globals
 	inline TArray<UObject*>* ItemInstances;
 	inline UObject* GamePlayStatics;
 	inline UObject* World;
+	inline duk_context* DukContext;
 }
 
 namespace Offsets
@@ -72,6 +73,7 @@ namespace Offsets
 	DWORD DurationPolicyOffset;
 	DWORD GrantedAbilitiesOffset;
 	DWORD AbilityOffset;
+	DWORD TextRenderOffset;
 }
 
 static void SetupOffsets()
@@ -127,6 +129,7 @@ static void SetupOffsets()
 	Offsets::DurationPolicyOffset = FindOffset(L"EnumProperty /Script/GameplayAbilities.GameplayEffect.DurationPolicy");
 	Offsets::GrantedAbilitiesOffset = FindOffset(L"ArrayProperty /Script/GameplayAbilities.GameplayEffect.GrantedAbilities");
 	Offsets::AbilityOffset = FindOffset(L"ClassProperty /Script/GameplayAbilities.GameplayAbilitySpecDef.Ability");
+	Offsets::TextRenderOffset = FindOffset(L"ObjectProperty /Script/Engine.TextRenderActor.TextRender");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -437,8 +440,9 @@ namespace Player
 		ProcessEvent(AbilitySystemComponent, BP_ApplyGameplayEffectToSelf, &Params);
 	}
 
-	static void GrantGameplayAbility(UObject* AbilitySystemComponent, UObject* GameplayAbilityClass)
+	static void GrantGameplayAbility(UObject* GameplayAbilityClass)
 	{
+		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(Globals::Pawn) + __int64(Offsets::AbilitySystemComponentOffset));
 		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
 
 		TArray<struct FGameplayAbilitySpecDef>* GrantedAbilities = reinterpret_cast<TArray<struct FGameplayAbilitySpecDef>*>(__int64(DefaultGameplayEffect) + __int64(Offsets::GrantedAbilitiesOffset));
@@ -450,7 +454,7 @@ namespace Player
 		*reinterpret_cast<EGameplayEffectDurationType*>(__int64(DefaultGameplayEffect) + __int64(Offsets::DurationPolicyOffset)) = EGameplayEffectDurationType::Infinite;
 
 		// apply modified gameplay effect to ability system component
-		BP_ApplyGameplayEffectToSelf(AbilitySystemComponent, FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C"));
+		BP_ApplyGameplayEffectToSelf(*AbilitySystemComponent, FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C"));
 	}
 
 	static void SetOwner(UObject* TargetActor, UObject* NewOwner)
@@ -615,6 +619,20 @@ namespace Pickup
 
 		ProcessEvent(FortPickup, OnRep_PrimaryPickupItemEntry, nullptr);
 	}
+
+	static void SpawnPickupAtLocation(UObject* ItemDefinition, int Count, FVector Location)
+	{
+		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location, {});
+
+		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::CountOffset));
+		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
+
+		*EntryCount = Count;
+		*EntryItemDefinition = ItemDefinition;
+
+		OnRep_PrimaryPickupItemEntry(FortPickupAthena);
+		TossPickup(FortPickupAthena, Location, Globals::Pawn, 6, true);
+	}
 }
 
 namespace Controller
@@ -692,6 +710,46 @@ namespace CheatManager
 	}
 }
 
+namespace TextActor
+{
+	static UObject* Spawn(FVector Location = {}, FRotator Rotation = {})
+	{
+		static auto c = FindObject(L"Class /Script/Engine.TextRenderActor");
+
+		auto TextRenderComponent = *(UObject**)(reinterpret_cast<__int64>(SpawnActorEasy(Globals::World, c, Location, Rotation)) + Offsets::TextRenderOffset /* UTextRenderComponent */);
+
+		return TextRenderComponent;
+	}
+
+	static void SetText(UObject* Target, FString Text)
+	{
+		const auto SetText = FindObject(L"Function /Script/Engine.TextRenderComponent.SetText");
+
+		ProcessEvent(Target, SetText, &Text);
+	}
+
+	static void SetWorldSize(UObject* Target, float value)
+	{
+		static auto SetWorldSize = FindObject(L"Function /Script/Engine.TextRenderComponent.SetWorldSize");
+
+		ProcessEvent(Target, SetWorldSize, &value);
+	}
+
+	static void SetXScale(UObject* Target, float value)
+	{
+		static auto SetXScale = FindObject(L"Function /Script/Engine.TextRenderComponent.SetXScale");
+
+		ProcessEvent(Target, SetXScale, &value);
+	}
+
+	static void SetYScale(UObject* Target, float value)
+	{
+		static auto SetYScale = FindObject(L"Function /Script/Engine.TextRenderComponent.SetYScale");
+
+		ProcessEvent(Target, SetYScale, &value);
+	}
+}
+
 namespace GameplayStatics
 {
 	static TArray<UObject*> GetAllActorsOfClass(UObject* Class)
@@ -731,6 +789,28 @@ namespace AActor
 		return Params.ret;
 	}
 
+	static FRotator GetRotation(UObject* Target)
+	{
+		static auto K2_GetActorRotation = FindObject(L"Function /Script/Engine.Actor.K2_GetActorRotation");
+
+		struct
+		{
+			FRotator ret;
+		} Params;
+
+		ProcessEvent(Target, K2_GetActorRotation, &Params);
+
+		return Params.ret;
+	}
+
+	static void SetActorScale3D(UObject* Target, FVector NewScale3D = {})
+	{
+		static auto SetActorScale3D = FindObject(L"Function /Script/Engine.Actor.SetActorScale3D");
+
+		ProcessEvent(Target, SetActorScale3D, &NewScale3D);
+	}
+
+
 	static void Destroy(UObject* Target)
 	{
 		static auto K2_DestroyActor = FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor");
@@ -749,9 +829,32 @@ namespace Widget
 	}
 }
 
-namespace Ability
+namespace Render
 {
+	static void MapWithActor(UObject* actorClass, std::string map, float actorWidth, float actorHeight, int lineLength, FVector loc, FRotator rot)
+	{
+		auto location = loc;
 
+		for (std::string::size_type i = 0; i < map.size(); ++i)
+		{
+			location.X -= actorHeight;
+
+			if (i % lineLength == 0)
+			{
+				location.Z -= actorWidth;
+				location.X = loc.X;
+			}
+
+			if (map[i] == '#')
+			{
+				SpawnActorEasy(Globals::World, actorClass, location, rot);
+			}
+
+			//printf("CurrentX: %f, CurrentZ: %f\n", location.X, location.Z);
+		}
+
+		location = {};
+	}
 }
 
 namespace Inventory

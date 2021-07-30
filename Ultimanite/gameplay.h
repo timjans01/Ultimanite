@@ -1,4 +1,5 @@
 #pragma once
+
 #include "framework.h"
 
 namespace Game
@@ -253,33 +254,6 @@ namespace Game
 				}
 			}
 
-			if (GetAsyncKeyState(VK_F1))
-			{
-				UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(Globals::Pawn) + __int64(Offsets::AbilitySystemComponentOffset));
-
-				if (AbilitySystemComponent)
-				{
-					printf("AbilitySystemComponent: %ws\n", (*AbilitySystemComponent)->GetFullName().c_str());
-
-					UObject* DefaultAbility = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C");
-
-					if (DefaultAbility)
-					{
-						printf("DefaultAbility: %ws\n", DefaultAbility->GetFullName().c_str());
-
-						Player::GrantGameplayAbility(*AbilitySystemComponent, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
-					}
-					else
-					{
-						printf("No DefaultAbility!\n");
-					}
-				}
-				else
-				{
-					printf("No AbilitySystemComponent!\n");
-				}
-			}
-
 			// called when an item is dropped from the inventory
 			if (wcsstr(FunctionName.c_str(), L"ServerAttemptInventoryDrop"))
 			{
@@ -300,6 +274,9 @@ namespace Game
 
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
+				// setup duktape
+				UScript::SetupBindings();
+
 				TArray<UObject*> FortHLODSMActors = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
 
 				// destroy all FortHLODSMactor instances to remove HLODs
@@ -339,8 +316,8 @@ namespace Game
 
 				if (AbilitySystemComponent)
 				{
-					Player::GrantGameplayAbility(*AbilitySystemComponent, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
-					Player::GrantGameplayAbility(*AbilitySystemComponent, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
+					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
+					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
 				}
 
 				// give default items
