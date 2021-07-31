@@ -13,7 +13,7 @@
 #include <vector>
 #include <fstream>
 
-#include <duktape.h>
+#include "source/duktape.h"
 
 //always the last
 #include "consts.h"
