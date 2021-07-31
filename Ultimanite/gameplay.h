@@ -168,7 +168,7 @@ namespace Game
 		Globals::GameState = FindObject(L"Athena_GameState_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameState_C");
 		Globals::GameMode = FindObject(L"Athena_GameMode_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameMode_C");
 		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ -122398, -103873.02, 3962.51 }, {});
-		Globals::PlayerState = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + __int64(Offsets::PlayerStateOffset));
+		Globals::PlayerState = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::PlayerStateOffset);
 
 		UObject* CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
 		UObject* FortEngine = FindObject(L"FortEngine /Engine/Transient.FortEngine_");
@@ -228,11 +228,12 @@ namespace Game
 
 		if (HeadCharacterPart && BodyCharacterPart)
 		{
-			*reinterpret_cast<UObject**>(__int64(Globals::PlayerState) + __int64(Offsets::CharacterPartsOffset)) = HeadCharacterPart;
-			*reinterpret_cast<UObject**>(__int64(Globals::PlayerState) + __int64(Offsets::CharacterPartsOffset) + __int64(8)) = BodyCharacterPart;
+			Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Body, BodyCharacterPart);
+			Player::ServerChoosePart(Globals::Pawn, EFortCustomPartType::Head, HeadCharacterPart);
 
 			ProcessEvent(Globals::PlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
 		}
+
 	}
 
 	namespace Hooks
@@ -318,10 +319,16 @@ namespace Game
 				{
 					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
 					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
+					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractSearch.GA_DefaultPlayer_InteractSearch_C"));
+					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractUse.GA_DefaultPlayer_InteractUse_C"));
 				}
 
 				// give default items
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall"), EFortQuickBars::Secondary, 0, 1);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
 
 				bDroppedLoadingScreen = true;
 			}

@@ -482,11 +482,11 @@ struct FActiveGameplayEffectHandle
 
 struct FGameplayEffectContextHandle
 {
-	char UnknownData_0[0x18]; // 0x00(0x18)
+	char UnknownData_0[0x30]; // 0x00(0x18)
 };
 
 struct FGameplayAbilitySpecDef
 {
 	UObject* Ability;
-	unsigned char Unk00[0x94];
+	unsigned char Unk00[0x90];
 };

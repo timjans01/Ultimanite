@@ -27,9 +27,10 @@ void Setup()
 		ToStringAddress = Util::FindPattern(UE_4_21_FNAME_TOSTRING);
 		GetFirstPlayerControllerAddress = Util::FindPattern(UE_4_21_GETFIRSTPLAYERCONTROLLER);
 		SpawnActorFromClassAddress = Util::FindPattern(UE_4_21_SPAWNACTORFROMCLASS);
+		LoadObjectAddress = Util::FindPattern(UE_4_21_LOADOBJECT);
 		ConstructObjectAddress = Util::FindPattern(UE_4_21_CONSTRUCTOBJECT);
 
-		if (GObjectsAddress && ToStringAddress && GetFirstPlayerControllerAddress && SpawnActorFromClassAddress && ConstructObjectAddress)
+		if (GObjectsAddress && ToStringAddress && GetFirstPlayerControllerAddress && SpawnActorFromClassAddress && LoadObjectAddress && ConstructObjectAddress)
 		{
 			CurrentVersion = EEngineVersion::UE_4_21;
 		}

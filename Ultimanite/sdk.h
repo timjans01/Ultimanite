@@ -442,8 +442,14 @@ namespace Player
 
 	static void GrantGameplayAbility(UObject* GameplayAbilityClass)
 	{
+
 		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(Globals::Pawn) + __int64(Offsets::AbilitySystemComponentOffset));
 		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
+		if (!DefaultGameplayEffect)
+		{
+			MessageBox(0, 0, 0, 0);
+			DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_Health_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.Default__GE_Athena_PurpleStuff_Health_C");
+		}
 
 		TArray<struct FGameplayAbilitySpecDef>* GrantedAbilities = reinterpret_cast<TArray<struct FGameplayAbilitySpecDef>*>(__int64(DefaultGameplayEffect) + __int64(Offsets::GrantedAbilitiesOffset));
 
@@ -454,7 +460,12 @@ namespace Player
 		*reinterpret_cast<EGameplayEffectDurationType*>(__int64(DefaultGameplayEffect) + __int64(Offsets::DurationPolicyOffset)) = EGameplayEffectDurationType::Infinite;
 
 		// apply modified gameplay effect to ability system component
-		BP_ApplyGameplayEffectToSelf(*AbilitySystemComponent, FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C"));
+		auto GameplayEffectClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C");
+		if (!GameplayEffectClass)
+		{
+			GameplayEffectClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.GE_Athena_PurpleStuff_Health_C");
+		}
+		BP_ApplyGameplayEffectToSelf(*AbilitySystemComponent, GameplayEffectClass);
 	}
 
 	static void SetOwner(UObject* TargetActor, UObject* NewOwner)
