@@ -282,6 +282,14 @@ namespace Game
 				EquipInventoryItem(*(FGuid*)Params);
 			}
 
+			if (wcsstr(FunctionName.c_str(), L"ServerAttemptExitVehicle"))
+			{
+				UObject* Vehicle = Player::GetVehicle();
+
+				*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_Authority;
+				*reinterpret_cast<ENetRole*>(__int64(Vehicle) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_Authority;
+			}
+
 			if (Object == Globals::Pawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
 			{
 				*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = (Player::IsInVehicle() ? ENetRole::ROLE_AutonomousProxy : ENetRole::ROLE_Authority);
