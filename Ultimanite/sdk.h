@@ -77,6 +77,7 @@ namespace Offsets
 	DWORD DynamicFoundationTypeOffset;
 	DWORD CheatManagerOffset;
 	DWORD RoleOffset;
+	DWORD bAlreadySearchedOffset;
 }
 
 static void SetupOffsets()
@@ -136,6 +137,7 @@ static void SetupOffsets()
 	Offsets::DynamicFoundationTypeOffset = FindOffset(L"EnumProperty /Script/FortniteGame.BuildingFoundation.DynamicFoundationType");
 	Offsets::CheatManagerOffset = FindOffset(L"ObjectProperty /Script/Engine.PlayerController.CheatManager");
 	Offsets::RoleOffset = FindOffset(L"ByteProperty /Script/Engine.Actor.Role");
+	Offsets::bAlreadySearchedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.BuildingContainer.bAlreadySearched");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -650,6 +652,13 @@ namespace Player
 		ProcessEvent(Globals::Pawn, IsInVehicle, &ReturnValue);
 
 		return ReturnValue;
+	}
+
+	static void OnRep_bAlreadySearched(UObject* Target)
+	{
+		static UObject* OnRep_bAlreadySearched = FindObject(L"Function /Script/FortniteGame.BuildingContainer.OnRep_bAlreadySearched");
+
+		ProcessEvent(Target, OnRep_bAlreadySearched, nullptr);
 	}
 }
 
