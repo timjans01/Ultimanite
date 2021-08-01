@@ -74,6 +74,9 @@ namespace Offsets
 	DWORD GrantedAbilitiesOffset;
 	DWORD AbilityOffset;
 	DWORD TextRenderOffset;
+	DWORD DynamicFoundationTypeOffset;
+	DWORD CheatManagerOffset;
+	DWORD RoleOffset;
 }
 
 static void SetupOffsets()
@@ -130,6 +133,9 @@ static void SetupOffsets()
 	Offsets::GrantedAbilitiesOffset = FindOffset(L"ArrayProperty /Script/GameplayAbilities.GameplayEffect.GrantedAbilities");
 	Offsets::AbilityOffset = FindOffset(L"ClassProperty /Script/GameplayAbilities.GameplayAbilitySpecDef.Ability");
 	Offsets::TextRenderOffset = FindOffset(L"ObjectProperty /Script/Engine.TextRenderActor.TextRender");
+	Offsets::DynamicFoundationTypeOffset = FindOffset(L"EnumProperty /Script/FortniteGame.BuildingFoundation.DynamicFoundationType");
+	Offsets::CheatManagerOffset = FindOffset(L"ObjectProperty /Script/Engine.PlayerController.CheatManager");
+	Offsets::RoleOffset = FindOffset(L"ByteProperty /Script/Engine.Actor.Role");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -169,6 +175,15 @@ struct InventoryPointer
 struct QuickBarPointer
 {
 	UObject* QuickBar;
+};
+
+enum class EDynamicFoundationType : uint8_t
+{
+	Static = 0,
+	StartEnabled_Stationary = 1,
+	StartEnabled_Dynamic = 2,
+	StartDisabled = 3,
+	EDynamicFoundationType_MAX = 4
 };
 
 namespace Kismet
@@ -447,7 +462,6 @@ namespace Player
 		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
 		if (!DefaultGameplayEffect)
 		{
-			MessageBox(0, 0, 0, 0);
 			DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_Health_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.Default__GE_Athena_PurpleStuff_Health_C");
 		}
 
@@ -588,6 +602,27 @@ namespace Player
 		bool HasFinishedLoading = true;
 
 		ProcessEvent(Target, ServerSetClientHasFinishedLoading, &HasFinishedLoading);
+	}
+
+	static void ShowBuildingFoundation(UObject* BuildingFoundation, EDynamicFoundationType DynamicFoundationType)
+	{
+		if (BuildingFoundation)
+		{
+			EDynamicFoundationType* CurrentFoundationType = reinterpret_cast<EDynamicFoundationType*>(__int64(BuildingFoundation) + __int64(Offsets::DynamicFoundationTypeOffset));
+
+			*CurrentFoundationType = DynamicFoundationType;
+		}
+	}
+
+	bool IsInVehicle()
+	{
+		static UObject* IsInVehicle = FindObject(L"Function /Script/FortniteGame.FortPlayerPawn.IsInVehicle");
+
+		bool ReturnValue;
+
+		ProcessEvent(Globals::Pawn, IsInVehicle, &ReturnValue);
+
+		return ReturnValue;
 	}
 }
 

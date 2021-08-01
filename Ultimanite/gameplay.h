@@ -171,6 +171,9 @@ namespace Game
 		Globals::PlayerState = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::PlayerStateOffset);
 
 		UObject* CheatManager = StaticConstructObjectInternal(FindObject(L"Class /Script/Engine.CheatManager"), Globals::Controller, 0, 0, 0, 0, 0, 0, 0);
+
+		*reinterpret_cast<UObject**>(__int64(Globals::Controller) + __int64(Offsets::CheatManagerOffset)) = CheatManager;
+
 		UObject* FortEngine = FindObject(L"FortEngine /Engine/Transient.FortEngine_");
 
 		UObject* GameViewport = *reinterpret_cast<UObject**>(__int64(FortEngine) + __int64(Offsets::GameViewportOffset));
@@ -204,6 +207,12 @@ namespace Game
 				*CurrentGamePhase = EAthenaGamePhase::Aircraft;
 
 				GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
+
+				if (wcsstr(CurrentVersion.ToWString(), L"v6"))
+				{
+					Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_15x15_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_FloatingIsland"), EDynamicFoundationType::Static);
+					Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_75x75_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake1"), EDynamicFoundationType::Static);
+				}
 			}
 
 			// builds that require StartMatch
@@ -273,8 +282,39 @@ namespace Game
 				EquipInventoryItem(*(FGuid*)Params);
 			}
 
+
+			//VEHICLES DO NOT WORK YET
+			/*if (wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
+			{
+				// make this an sdk function
+				if (Player::IsInVehicle())
+				{
+					auto NetRole = reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset));
+					*NetRole = ENetRole::ROLE_SimulatedProxy;
+				}
+				else
+				{
+					auto NetRole = reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset));
+					*NetRole = ENetRole::ROLE_Authority;
+				}
+			}*/
+
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
+				struct ToSlateBrush
+				{
+					FSlateBrush Brush;
+				};
+
+				reinterpret_cast<FSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapBackgroundBrushOffset))->ObjectResource = StaticLoadObjectEasy(FindObject(L"Class /Script/Engine.Texture2D"), L"/Game/Athena/HUD/MiniMap/MiniMapAthena.MiniMapAthena");
+
+				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset))->Brush = {}; // MinimapCircleBrush
+				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
+				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapNextCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
+				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
+				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
+				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset))->Brush = {}; // MinimapCircleBrush
+
 				// setup duktape
 				UScript::SetupBindings();
 
@@ -321,6 +361,8 @@ namespace Game
 					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractSearch.GA_DefaultPlayer_InteractSearch_C"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractUse.GA_DefaultPlayer_InteractUse_C"));
+					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaExitVehicle.GA_AthenaExitVehicle_C"));
+					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaInVehicle.GA_AthenaInVehicle_C"));
 				}
 
 				// give default items
