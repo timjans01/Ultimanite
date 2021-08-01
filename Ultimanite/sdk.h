@@ -614,6 +614,33 @@ namespace Player
 		}
 	}
 
+	static void K2_TeleportTo(UObject* Actor, FVector DestLocation, FRotator DestRotation)
+	{
+		static UObject* K2_TeleportTo = FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo");
+
+		struct
+		{
+			FVector DestLocation;
+			FRotator DestRotation;
+		} Params;
+
+		Params.DestLocation = DestLocation;
+		Params.DestRotation = DestRotation;
+
+		ProcessEvent(Actor, K2_TeleportTo, &Params);
+	}
+
+	UObject* GetVehicle()
+	{
+		static UObject* GetVehicle = FindObject(L"Function /Script/FortniteGame.FortPlayerPawn.GetVehicle");
+
+		UObject* ReturnValue;
+
+		ProcessEvent(Globals::Pawn, GetVehicle, &ReturnValue);
+
+		return ReturnValue;
+	}
+
 	bool IsInVehicle()
 	{
 		static UObject* IsInVehicle = FindObject(L"Function /Script/FortniteGame.FortPlayerPawn.IsInVehicle");

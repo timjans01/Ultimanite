@@ -282,22 +282,44 @@ namespace Game
 				EquipInventoryItem(*(FGuid*)Params);
 			}
 
-
-			//VEHICLES DO NOT WORK YET
-			/*if (wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
+			if (wcsstr(FunctionName.c_str(), L"ServerAttemptExitVehicle"))
 			{
-				// make this an sdk function
-				if (Player::IsInVehicle())
+				UObject* Vehicle = Player::GetVehicle();
+
+				if (Vehicle)
 				{
-					auto NetRole = reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset));
-					*NetRole = ENetRole::ROLE_SimulatedProxy;
+					printf("Exiting vehicle: %ws\n", Vehicle->GetFullName().c_str());
+
+					UObject* OnPawnExitVehicle = FindObject(L"Function /Script/FortniteGame.FortAthenaVehicle.OnPawnExitVehicle");
+
+					struct
+					{
+						UObject* Pawn;
+						FName ExitSocketName;
+					} Params;
+
+					Params.Pawn = Globals::Pawn;
+					Params.ExitSocketName = Kismet::FStringToFName(L"None");
+
+					ProcessEvent(Vehicle, OnPawnExitVehicle, &Params);
 				}
 				else
 				{
-					auto NetRole = reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset));
-					*NetRole = ENetRole::ROLE_Authority;
+					printf("NO VEHICLE\n");
 				}
-			}*/
+			}
+
+			if (Object == Globals::Pawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
+			{
+				*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = (Player::IsInVehicle() ? ENetRole::ROLE_AutonomousProxy : ENetRole::ROLE_Authority);
+
+				auto Vehicle = Player::GetVehicle();
+
+				if (Vehicle)
+				{
+					*reinterpret_cast<ENetRole*>(__int64(Vehicle) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_AutonomousProxy;
+				}
+			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
 			{
@@ -361,6 +383,7 @@ namespace Game
 					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractSearch.GA_DefaultPlayer_InteractSearch_C"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractUse.GA_DefaultPlayer_InteractUse_C"));
+					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaEnterVehicle.GA_AthenaEnterVehicle_C"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaExitVehicle.GA_AthenaExitVehicle_C"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaInVehicle.GA_AthenaInVehicle_C"));
 				}
