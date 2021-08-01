@@ -282,38 +282,11 @@ namespace Game
 				EquipInventoryItem(*(FGuid*)Params);
 			}
 
-			if (wcsstr(FunctionName.c_str(), L"ServerAttemptExitVehicle"))
-			{
-				UObject* Vehicle = Player::GetVehicle();
-
-				if (Vehicle)
-				{
-					printf("Exiting vehicle: %ws\n", Vehicle->GetFullName().c_str());
-
-					UObject* OnPawnExitVehicle = FindObject(L"Function /Script/FortniteGame.FortAthenaVehicle.OnPawnExitVehicle");
-
-					struct
-					{
-						UObject* Pawn;
-						FName ExitSocketName;
-					} Params;
-
-					Params.Pawn = Globals::Pawn;
-					Params.ExitSocketName = Kismet::FStringToFName(L"None");
-
-					ProcessEvent(Vehicle, OnPawnExitVehicle, &Params);
-				}
-				else
-				{
-					printf("NO VEHICLE\n");
-				}
-			}
-
 			if (Object == Globals::Pawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
 			{
 				*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = (Player::IsInVehicle() ? ENetRole::ROLE_AutonomousProxy : ENetRole::ROLE_Authority);
 
-				auto Vehicle = Player::GetVehicle();
+				UObject* Vehicle = Player::GetVehicle();
 
 				if (Vehicle)
 				{
