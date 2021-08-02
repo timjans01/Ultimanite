@@ -47,6 +47,8 @@ namespace Offsets
 	DWORD MinimapSafeZoneBrushOffset;
 	DWORD MinimapBackgroundBrushOffset;
 	DWORD MinimapNextCircleBrushOffset;
+	DWORD FloatingIslandBrushOffset;
+	DWORD FloatingIslandBrushActivatedOffset;
 	DWORD FullMapCircleBrushOffset;
 	DWORD FullMapNextCircleBrushOffset;
 	DWORD MinimapSafeZoneFinalPosBrushOffset;
@@ -108,6 +110,8 @@ static void SetupOffsets()
 	Offsets::MinimapSafeZoneBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneBrush");
 	Offsets::MinimapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapCircleBrush");
 	Offsets::MinimapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapNextCircleBrush");
+	Offsets::FloatingIslandBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FloatingIslandBrush");
+	Offsets::FloatingIslandBrushActivatedOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FloatingIslandBrushActivated");
 	Offsets::FullMapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapCircleBrush");
 	Offsets::FullMapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapNextCircleBrush");
 	Offsets::MinimapSafeZoneFinalPosBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneFinalPosBrush");

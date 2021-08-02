@@ -354,6 +354,14 @@ namespace Game
 				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
 				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset))->Brush = {}; // MinimapCircleBrush
 
+				FString CurrentVersion = RuntimeOptions::GetGameVersion();
+
+				if (wcsstr(CurrentVersion.ToWString(), L"v6.21"))
+				{
+					reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FloatingIslandBrushOffset))->Brush = {}; // FloatingIslandBrush
+					reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FloatingIslandBrushActivatedOffset))->Brush = {}; // FloatingIslandBrushActivated
+				}
+
 				// setup duktape
 				UScript::SetupBindings();
 
