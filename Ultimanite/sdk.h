@@ -1021,7 +1021,7 @@ namespace Inventory
 		{
 			struct ItemEntrySize
 			{
-				unsigned char Unk00[0xD0]; //TODO: FIX SIZE AS IT IS BROKEN
+				unsigned char Unk00[0x120];
 			};
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
 			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
