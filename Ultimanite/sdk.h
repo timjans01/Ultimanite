@@ -17,6 +17,8 @@ namespace Globals
 	inline UObject* GamePlayStatics;
 	inline UObject* World;
 	inline duk_context* DukContext;
+	inline UObject* ChestsSound;
+	inline UObject* AmmoBoxSound;
 }
 
 namespace Offsets
@@ -664,6 +666,26 @@ namespace Player
 
 		ProcessEvent(Target, OnRep_bAlreadySearched, nullptr);
 	}
+
+	static void ClientPlaySoundAtLocation(UObject* Target, UObject* SoundToPlay, FVector Location, float VolumeMultiplier, float PitchMultiplier)
+	{
+		static UObject* ClientPlaySoundAtLocation = FindObject(L"Function /Script/Engine.PlayerController.ClientPlaySoundAtLocation");
+
+		struct
+		{
+			UObject* soundToPlay;
+			FVector Location;
+			float VolumeMultiplier;
+			float PitchMultiplier;
+		} params;
+
+		params.soundToPlay = SoundToPlay;
+		params.Location = Location;
+		params.VolumeMultiplier = VolumeMultiplier;
+		params.PitchMultiplier = PitchMultiplier;
+
+		ProcessEvent(Target, ClientPlaySoundAtLocation, &params);
+	}
 }
 
 namespace PlayerState
@@ -719,6 +741,7 @@ namespace Pickup
 		OnRep_PrimaryPickupItemEntry(FortPickupAthena);
 		TossPickup(FortPickupAthena, Location, Globals::Pawn, 6, true);
 	}
+
 }
 
 namespace Controller

@@ -174,6 +174,9 @@ namespace Game
 
 		*reinterpret_cast<UObject**>(__int64(Globals::Controller) + __int64(Offsets::CheatManagerOffset)) = CheatManager;
 
+		Globals::ChestsSound = FindObject(L"SoundCue /Game/Sounds/Foley_Loot/Containers/Treasure_Chest/Tiered_Chest_Open_T01_Cue.Tiered_Chest_Open_T01_Cue");
+		Globals::AmmoBoxSound = FindObject(L"SoundCue /Game/Sounds/Foley_Loot/Containers/Toolbox/Toolbox_SearchEnd_Cue.Toolbox_SearchEnd_Cue");
+
 		UObject* FortEngine = FindObject(L"FortEngine /Engine/Transient.FortEngine_");
 
 		UObject* GameViewport = *reinterpret_cast<UObject**>(__int64(FortEngine) + __int64(Offsets::GameViewportOffset));
@@ -315,6 +318,17 @@ namespace Game
 					auto ContainerBitField = reinterpret_cast<BitField*>(__int64(CurrentParams->ReceivingActor) + __int64(Offsets::bAlreadySearchedOffset));
 					ContainerBitField->bAlreadySearched = true;
 					Player::OnRep_bAlreadySearched(CurrentParams->ReceivingActor);
+
+					auto ContainerLocation = AActor::GetLocation(CurrentParams->ReceivingActor);
+
+					if (CurrentParams->ReceivingActor->GetFullName().starts_with(L"Tiered_Chest"))
+					{
+						Player::ClientPlaySoundAtLocation(Globals::Controller, Globals::ChestsSound, ContainerLocation, 1, 1);
+					}
+					else if (CurrentParams->ReceivingActor->GetFullName().starts_with(L"Tiered_Ammo"))
+					{
+						Player::ClientPlaySoundAtLocation(Globals::Controller, Globals::AmmoBoxSound, ContainerLocation, 1, 1);
+					}
 				}
 			}
 
