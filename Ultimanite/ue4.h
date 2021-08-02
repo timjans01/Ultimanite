@@ -22,7 +22,8 @@ enum class EEngineVersion : uint8_t
 {
 	UE_4_20 = 0,
 	UE_4_21 = 1,
-	None = 2
+	UE_4_22 = 2,
+	None = 3
 };
 
 inline void NumChunks(int* start, int* end)
@@ -149,7 +150,9 @@ inline void DumpObjects()
 {
 	std::wofstream DumpFile("dump_objects_log.txt");
 
-	for (int i = 0; i < ObjObjects->NumElements; i++)
+	int ObjectCount = GlobalObjects ? GlobalObjects->ObjectCount : ObjObjects->NumElements;
+
+	for (int i = 0; i < ObjectCount; i++)
 	{
 		auto Object = FindObjectById(i);
 

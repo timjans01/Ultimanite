@@ -1004,19 +1004,31 @@ namespace Inventory
 
 	static void AddItemToInventory(UObject* FortItem, EFortQuickBars QuickbarIndex, int Slot)
 	{
-		struct ItemEntrySize
+		FString CurrentVersion = RuntimeOptions::GetGameVersion();
+
+		if (wcsstr(CurrentVersion.ToWString(), L"v4") || 
+			wcsstr(CurrentVersion.ToWString(), L"v5") ||
+			wcsstr(CurrentVersion.ToWString(), L"v6"))
 		{
-			unsigned char Unk00[0xD0]; // Padding. TODO: DO DYNAMICALLY OR EVERYTHING WILL BREAK
-		};
+			struct ItemEntrySize
+			{
+				unsigned char Unk00[0xD0]; 
+			};
+			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
+			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
+		}
+		else if (wcsstr(CurrentVersion.ToWString(), L"v7"))
+		{
+			struct ItemEntrySize
+			{
+				unsigned char Unk00[0xD0]; //TODO: FIX SIZE AS IT IS BROKEN
+			};
+			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
+			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
+		}
 
-		auto ItemInstances = reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset));
-		auto ItemEntries = reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset));
-
-		auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
-
-		ItemEntries->Add(*ItemEntry);
-		ItemInstances->Add(FortItem);
-
+		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset))->Add(FortItem);;
+		
 		Player::ServerAddItemInternal(Globals::Quickbar, Player::GetItemGuid(FortItem), QuickbarIndex, Slot);
 	}
 

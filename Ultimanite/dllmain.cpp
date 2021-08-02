@@ -38,6 +38,23 @@ void Setup()
 		}
 	}
 
+	// not able to find any version yet, lets try again
+	if (CurrentVersion == EEngineVersion::None)
+	{
+		GObjectsAddress = Util::FindPattern(UE_4_22_GOBJECTS);
+		ToStringAddress = Util::FindPattern(UE_4_22_FNAME_TOSTRING);
+		GetFirstPlayerControllerAddress = Util::FindPattern(UE_4_22_GETFIRSTPLAYERCONTROLLER);
+		SpawnActorFromClassAddress = Util::FindPattern(UE_4_22_SPAWNACTORFROMCLASS);
+		LoadObjectAddress = Util::FindPattern(UE_4_22_LOADOBJECT);
+		ConstructObjectAddress = Util::FindPattern(UE_4_22_CONSTRUCTOBJECT);
+		FreeAddress = Util::FindPattern(UE_4_22_FREE);
+
+		if (GObjectsAddress && ToStringAddress && GetFirstPlayerControllerAddress && SpawnActorFromClassAddress && LoadObjectAddress && ConstructObjectAddress && FreeAddress)
+		{
+			CurrentVersion = EEngineVersion::UE_4_22;
+		}
+	}
+
 	if (CurrentVersion == EEngineVersion::None)
 	{
 		printf("Unsupported Engine version!\n");
