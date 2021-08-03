@@ -81,7 +81,17 @@ void Setup()
 	StaticConstructObjectInternal = decltype(StaticConstructObjectInternal)(ConstructObjectAddress);
 	StaticLoadObjectInternal = decltype(StaticLoadObjectInternal)(LoadObjectAddress);
 	FreeInternal = decltype(FreeInternal)(FreeAddress);
-	ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[CONSTS::PROCESS_EVENT_INDEX]);
+
+	auto CurrentEngineVersion = std::stof(RuntimeOptions::GetFortniteVersion());
+
+	if (7.4 <= CurrentEngineVersion)
+	{
+		ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[0x41]);
+	}
+	else
+	{
+		ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[0x40]);
+	}
 
 	// we are ready to enter a game
 	Game::Setup();

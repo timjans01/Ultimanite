@@ -196,16 +196,16 @@ namespace Game
 
 		Player::Possess(Globals::Controller, Globals::Pawn);
 
-		FString CurrentVersion = RuntimeOptions::GetGameVersion();
-
 		// some builds do not have GetGameVersion, we will assume that they use StartMatch
-		if (CurrentVersion.ToWString() != L"Unknown")
+		if (RuntimeOptions::GetFortniteVersion().c_str() != "Unknown")
 		{
 			// builds that require GamePhase
-			if (wcsstr(CurrentVersion.ToWString(), L"v4") ||
-				wcsstr(CurrentVersion.ToWString(), L"v6") ||
-				wcsstr(CurrentVersion.ToWString(), L"v7"))
+			if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "4") ||
+				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6") ||
+				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7"))
 			{
+				MessageBox(0, 0, 0, 0);
+
 				EAthenaGamePhase* CurrentGamePhase = reinterpret_cast<EAthenaGamePhase*>(__int64(Globals::GameState) + __int64(Offsets::GamePhaseOffset));
 				*CurrentGamePhase = EAthenaGamePhase::Aircraft;
 
@@ -213,11 +213,11 @@ namespace Game
 			}
 
 			// builds that require StartMatch
-			if (wcsstr(CurrentVersion.ToWString(), L"v3") ||
-				wcsstr(CurrentVersion.ToWString(), L"v5") ||
-				wcsstr(CurrentVersion.ToWString(), L"v8") ||
-				wcsstr(CurrentVersion.ToWString(), L"v9") ||
-				wcsstr(CurrentVersion.ToWString(), L"v10"))
+			if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3") ||
+				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "5") ||
+				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8") ||
+				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "9") ||
+				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "10"))
 			{
 				GameMode::StartMatch(Globals::GameMode);
 			}
@@ -228,12 +228,12 @@ namespace Game
 		}
 
 		//SHOWING HIDDEN POIs
-		if (wcsstr(CurrentVersion.ToWString(), L"v6"))
+		if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6"))
 		{
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_15x15_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_FloatingIsland"), EDynamicFoundationType::Static);
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_75x75_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake1"), EDynamicFoundationType::Static);
 		}
-		if ((wcsstr(CurrentVersion.ToWString(), L"v7")))
+		if ((strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7")))
 		{
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_25x25_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_25x36"), EDynamicFoundationType::Static);
 		}
@@ -373,9 +373,9 @@ namespace Game
 				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
 				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset))->Brush = {}; // MinimapCircleBrush
 
-				FString CurrentVersion = RuntimeOptions::GetGameVersion();
+				auto CurrentFortVersion = Globals::FortniteVersion;
 
-				if (wcsstr(CurrentVersion.ToWString(), L"v6.21"))
+				if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6.21"))
 				{
 					reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FloatingIslandBrushOffset))->Brush = {}; // FloatingIslandBrush
 					reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FloatingIslandBrushActivatedOffset))->Brush = {}; // FloatingIslandBrushActivated
@@ -409,11 +409,20 @@ namespace Game
 				// used to show username in top left
 				PlayerState::OnRep_SquadId();
 
+				DWORD QuickbarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.QuickBars");
 				Globals::FortInventory = reinterpret_cast<InventoryPointer*>(__int64(Globals::Controller) + __int64(Offsets::WorldInventoryOffset))->Inventory;
-				Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ -122398, -103873.02, 3962.51 }, {});
 
-				// setup quickbar pointer
-				reinterpret_cast<QuickBarPointer*>(__int64(Globals::Controller) + __int64(Offsets::QuickBarOffset))->QuickBar = Globals::Quickbar;
+				if (QuickbarOffset != 0)
+				{	
+					Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ -122398, -103873.02, 3962.51 }, {});
+					reinterpret_cast<QuickBarPointer*>(__int64(Globals::Controller) + __int64(QuickbarOffset))->QuickBar = Globals::Quickbar;
+				}
+				else
+				{
+					QuickbarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.ClientQuickBars");
+					Globals::Quickbar = reinterpret_cast<QuickBarPointer*>(__int64(Globals::Controller) + __int64(QuickbarOffset))->QuickBar;
+				}
+				
 
 				// set owner of quickbar to current controller
 				Player::SetOwner(Globals::Quickbar, Globals::Controller);
@@ -430,7 +439,6 @@ namespace Game
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaEnterVehicle.GA_AthenaEnterVehicle_C"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaExitVehicle.GA_AthenaExitVehicle_C"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaInVehicle.GA_AthenaInVehicle_C"));
-					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/Environments/Blueprints/SurfaceEffects/GA_SurfaceChange_Ice_IceCheckOnTimer.GA_SurfaceChange_Ice_IceCheckOnTimer_C"));
 				}
 
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);

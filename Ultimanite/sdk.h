@@ -19,6 +19,7 @@ namespace Globals
 	inline duk_context* DukContext;
 	inline UObject* ChestsSound;
 	inline UObject* AmmoBoxSound;
+	inline const char* FortniteVersion;
 }
 
 namespace Offsets
@@ -90,7 +91,6 @@ static void SetupOffsets()
 	Offsets::ItemEntriesOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortItemList.ReplicatedEntries");
 	Offsets::ItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
 	Offsets::WorldInventoryOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.WorldInventory");
-	Offsets::QuickBarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.QuickBars");
 	Offsets::GamePhaseOffset = FindOffset(L"EnumProperty /Script/FortniteGame.FortGameStateAthena.GamePhase");
 	Offsets::StrongMyHeroOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerControllerAthena.StrongMyHero");
 	Offsets::CharacterPartsOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerState.CharacterParts");
@@ -317,6 +317,13 @@ namespace RuntimeOptions
 			return L"Unknown";
 		}
 	}
+
+	static std::string GetFortniteVersion()
+	{
+		void* Result;
+		auto String = reinterpret_cast<FString* (__fastcall*)(void*)>(Util::FindPattern("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 41 B8 04 ? ? ? 48 8B D3"))(&Result)->ToString();
+		return String.substr(34, 4);
+	}
 }
 
 namespace Building
@@ -400,22 +407,23 @@ namespace Player
 		return ReturnValue;
 	}
 
-	static void ServerAddItemInternal(UObject* Quickbars, FGuid Item, EFortQuickBars Quickbar, int Slot)
+	static void AddItemToQuickBars(UObject* ItemDefinition, EFortQuickBars Quickbar, int Slot)
 	{
-		static UObject* ServerAddItemInternal = FindObject(L"Function /Script/FortniteGame.FortQuickBars.ServerAddItemInternal");
+		static UObject* AddItemToQuickBars = FindObject(L"Function /Script/FortniteGame.FortPlayerController.AddItemToQuickBars");
 
 		struct
 		{
-			FGuid Item;
+			UObject* ItemDefinition;
 			EFortQuickBars Quickbar;
 			int Slot;
 		} Params;
 
-		Params.Item = Item;
+		Params.ItemDefinition = ItemDefinition;
 		Params.Quickbar = Quickbar;
 		Params.Slot = Slot;
 
-		ProcessEvent(Quickbars, ServerAddItemInternal, &Params);
+
+		ProcessEvent(Globals::Controller, AddItemToQuickBars, &Params);
 	}
 
 	static UObject* CreateTemporaryItemInstanceBP(UObject* ItemDefinition, int Count, int Level)
@@ -988,14 +996,25 @@ namespace Inventory
 		static auto HandleWorldInventoryLocalUpdate = FindObject(L"Function /Script/FortniteGame.FortPlayerController.HandleWorldInventoryLocalUpdate");
 		static auto HandleInventoryLocalUpdate = FindObject(L"Function /Script/FortniteGame.FortInventory.HandleInventoryLocalUpdate");
 		static auto OnRep_QuickBar = FindObject(L"Function /Script/FortniteGame.FortPlayerController.OnRep_QuickBar");
+		static auto ClientForceUpdateQuickbar = FindObject(L"Function /Script/FortniteGame.FortPlayerController.ClientForceUpdateQuickbar");
 		static auto OnRep_SecondaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_SecondaryQuickBar");
 		static auto OnRep_PrimaryQuickBar = FindObject(L"Function /Script/FortniteGame.FortQuickBars.OnRep_PrimaryQuickBar");
 
 		ProcessEvent(Globals::FortInventory, HandleInventoryLocalUpdate, nullptr);
 		ProcessEvent(Globals::Controller, HandleWorldInventoryLocalUpdate, nullptr);
-		ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
-		ProcessEvent(Globals::Quickbar, OnRep_SecondaryQuickBar, nullptr);
-		ProcessEvent(Globals::Quickbar, OnRep_PrimaryQuickBar, nullptr);
+		if (OnRep_QuickBar) 
+		{
+			ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
+			ProcessEvent(Globals::Quickbar, OnRep_SecondaryQuickBar, nullptr);
+			ProcessEvent(Globals::Quickbar, OnRep_PrimaryQuickBar, nullptr);
+		}
+		else
+		{
+			auto PrimaryQuickbar = EFortQuickBars::Primary;
+			auto SecondaryQuickbar = EFortQuickBars::Secondary;
+			ProcessEvent(Globals::Controller, ClientForceUpdateQuickbar, &PrimaryQuickbar);
+			ProcessEvent(Globals::Controller, ClientForceUpdateQuickbar, &SecondaryQuickbar);
+		}
 	}
 
 	static int test()
@@ -1006,7 +1025,7 @@ namespace Inventory
 	{
 		FString CurrentVersion = RuntimeOptions::GetGameVersion();
 
-		if (wcsstr(CurrentVersion.ToWString(), L"v4") || 
+		if (wcsstr(CurrentVersion.ToWString(), L"v4") ||
 			wcsstr(CurrentVersion.ToWString(), L"v5") ||
 			wcsstr(CurrentVersion.ToWString(), L"v6"))
 		{
@@ -1029,7 +1048,7 @@ namespace Inventory
 
 		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset))->Add(FortItem);;
 		
-		Player::ServerAddItemInternal(Globals::Quickbar, Player::GetItemGuid(FortItem), QuickbarIndex, Slot);
+		Player::AddItemToQuickBars(Player::GetItemDefinition(FortItem), QuickbarIndex, Slot);
 	}
 
 	static void AddItemToInventoryWithUpdate(UObject* ItemDef, EFortQuickBars QuickbarIndex, int Slot, int Count)
