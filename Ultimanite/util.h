@@ -18,14 +18,29 @@ namespace Util
 		MEMORY_BASIC_INFORMATION mbi;
 		if (VirtualQuery(p, &mbi, sizeof(mbi)))
 		{
-			DWORD mask = (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE |
-				PAGE_EXECUTE_WRITECOPY);
+			DWORD mask = (PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
 			bool b = !(mbi.Protect & mask);
 			if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS)) b = true;
 
 			return b;
 		}
 		return true;
+	}
+
+	static __forceinline std::string readAllText(const std::string& path)
+	{
+		std::ifstream input_file(path);
+		if (!input_file.is_open()) return std::string();
+
+		return std::string((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+	}
+
+	static __forceinline std::string GetRuntimePath()
+	{
+		char result[MAX_PATH];
+		std::string path(result, GetModuleFileNameA(nullptr, result, MAX_PATH));
+		size_t pos = path.find_last_of("\\/");
+		return (std::string::npos == pos) ? "" : path.substr(0, pos);
 	}
 
 	static __forceinline uintptr_t FindPattern(const char* signature, bool bRelative = false, uint32_t offset = 0)
@@ -42,8 +57,7 @@ namespace Util
 				if (*current == '?')
 				{
 					++current;
-					if (*current == '?')
-						++current;
+					if (*current == '?') ++current;
 					bytes.push_back(-1);
 				}
 				else { bytes.push_back(strtoul(current, &current, 16)); }

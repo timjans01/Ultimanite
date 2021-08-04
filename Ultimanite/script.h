@@ -1,17 +1,42 @@
 #pragma once
-
 #include "script_wrappers.h"
 
 namespace UScript
 {
-	static void error_handler(void* udata, const char* msg)
+	static void balls()
 	{
+		duk_eval_string_noresult(Globals::DukContext, Util::readAllText("C:\\Users\\karee\\Desktop\\UScript.js").c_str());
+	}
+
+	static void error_handler(void* udata, const char* msg) {
 		(void)udata;
 		printf("\n*** FATAL ERROR: %s\n%s", (msg ? msg : "no message"), "\n");
 		return;
 	}
 
-	static void SetupBindings()
+	static void ExecuteStartupScript()
+	{
+		auto content = Util::readAllText(Util::GetRuntimePath() + "\\uscripts\\startup.js");
+
+		if (content.empty()) return;
+
+		duk_eval_string_noresult(Globals::DukContext, content.c_str());
+
+		return;
+	}
+
+	static void F7()
+	{
+		auto content = Util::readAllText(Util::GetRuntimePath() + "\\uscripts\\f7.js");
+
+		if (content.empty()) return;
+
+		duk_eval_string_noresult(Globals::DukContext, content.c_str());
+
+		return;
+	}
+
+	static void InitBindings()
 	{
 		duk_context* ctx = duk_create_heap(NULL, NULL, NULL, NULL, error_handler);
 
@@ -61,5 +86,11 @@ namespace UScript
 
 		duk_push_c_function(ctx, duk_webclientget, DUK_VARARGS);
 		duk_put_global_string(ctx, "UWebClientGet");
+
+		/*duk_push_c_function(ctx, duk_triggerwin, DUK_VARARGS);
+		duk_put_global_string(ctx, "UTriggerWin");
+
+		duk_push_c_function(ctx, duk_processeventhook, DUK_VARARGS);
+		duk_put_global_string(ctx, "UProcessEventHook");*/
 	}
 }

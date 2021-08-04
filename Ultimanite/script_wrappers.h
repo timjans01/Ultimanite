@@ -1,5 +1,4 @@
 #pragma once
-
 #include "framework.h"
 
 //void UDisplayObjectName(ObjectPointer);
@@ -96,8 +95,8 @@ static duk_ret_t duk_spawnactor(duk_context* ctx)
 		duk_get_prop_index(ctx, 2, 2);
 		auto roll = duk_get_int(ctx, -1);
 
-		FVector Location{ x, y, z };
-		FRotator Rotation{ pitch, yaw, roll };
+		FVector Location{x, y, z};
+		FRotator Rotation{pitch, yaw, roll};
 
 		auto actor = SpawnActorEasy(GetWorld(), (UObject*)classObject, Location, Rotation);
 
@@ -196,7 +195,7 @@ static duk_ret_t duk_scaleactor(duk_context* ctx)
 	auto y = static_cast<float>(duk_get_int(ctx, 2));
 	auto z = static_cast<float>(duk_get_int(ctx, 3));
 
-	AActor::SetActorScale3D(actorObject, FVector{ x, y, z });
+	AActor::SetActorScale3D(actorObject, FVector{x, y, z});
 
 	return 0;
 }
@@ -243,8 +242,8 @@ static duk_ret_t duk_teleportactor(duk_context* ctx)
 		duk_get_prop_index(ctx, 2, 2);
 		auto roll = duk_get_int(ctx, -1);
 
-		FVector Location{ x, y, z };
-		FRotator Rotation{ pitch, yaw, roll };
+		FVector Location{x, y, z};
+		FRotator Rotation{pitch, yaw, roll};
 
 		struct Params
 		{
@@ -260,7 +259,6 @@ static duk_ret_t duk_teleportactor(duk_context* ctx)
 		auto func = FindObject(L"Function /Script/Engine.Actor.K2_TeleportTo");
 
 		ProcessEvent(actor, func, &params);
-
 	}
 	else
 	{
@@ -321,7 +319,7 @@ static duk_ret_t duk_spawnpickupatlocation(duk_context* ctx)
 	auto y = static_cast<float>(duk_get_int(ctx, 2));
 	auto z = static_cast<float>(duk_get_int(ctx, 3));
 
-	Pickup::SpawnPickupAtLocation(object, 1, { x, y, z });
+	Pickup::SpawnPickupAtLocation(object, 1, {x, y, z});
 
 	return 0;
 }
@@ -386,8 +384,8 @@ static duk_ret_t duk_spawntextactor(duk_context* ctx)
 		duk_get_prop_index(ctx, 1, 2);
 		auto roll = duk_get_int(ctx, -1);
 
-		FVector Location{ x, y, z };
-		FRotator Rotation{ pitch, yaw, roll };
+		FVector Location{x, y, z};
+		FRotator Rotation{pitch, yaw, roll};
 
 		auto actor = TextActor::Spawn(Location, Rotation);
 
@@ -509,11 +507,14 @@ static duk_ret_t duk_renderasciiwithactor(duk_context* ctx)
 		duk_get_prop_index(ctx, 6, 2);
 		auto roll = duk_get_int(ctx, -1);
 
-		FVector Location{ x, y, z };
-		FRotator Rotation{ pitch, yaw, roll };
+		FVector Location{x, y, z};
+		FRotator Rotation{pitch, yaw, roll};
 
+		//printf("%s", map.c_str());
+
+		printf("x: %f, y: %f, z: %f\n", Location.X, Location.Y, Location.Y);
+		
 		Render::MapWithActor(actor, map, actorWidth, actorHeight, lineLength, Location, Rotation);
-
 	}
 	else
 	{
@@ -591,3 +592,75 @@ static duk_ret_t duk_webclientget(duk_context* ctx)
 
 	return 1; //one return value
 }
+
+//String UWebClientPost(Client, "Path", "Body", "Content-Type");
+static duk_ret_t duk_webclientpost(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength != 4)
+	{
+		MessageBox(nullptr, L"This function takes 4 arguments!.", L"UWebClientPost", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto cli = (httplib::SSLClient*)duk_get_pointer(ctx, 0);
+
+	if (!cli || Util::IsBadReadPtr(cli))
+	{
+		MessageBox(nullptr, L"Client is invalid.", L"UWebClientPost", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	std::string path = duk_get_string(ctx, 1);
+	std::string body = duk_get_string(ctx, 2);
+	std::string type = duk_get_string(ctx, 3);
+
+	if (!path.empty())
+	{
+		if (auto res = (*cli).Post(path.c_str(), body.c_str(), type.c_str()))
+		{
+			if (res->status == 200)
+			{
+				duk_push_string(ctx, res->body.c_str());
+			}
+		}
+	}
+	else
+	{
+		MessageBox(nullptr, L"Path cannot be empty!.", L"UWebClientPost", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	return 1; //one return value
+}
+
+/*
+//void UTriggerWin();
+static duk_ret_t duk_triggerwin(duk_context* ctx)
+{
+	Player::TriggerWin();
+	return 0;
+}*/
+
+/*
+//void UProcessEventHook("EVENT", function() {});
+static duk_ret_t duk_processeventhook(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength != 2)
+	{
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"UProcessEventHook", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	std::string event = duk_get_string(ctx, 0);
+	std::wstring eventW(event.begin(), event.end());
+
+	duk_require_function(ctx, 1);
+	duk_dup(ctx, 1);
+	duk_put_global_string(ctx, event.c_str());
+
+	Globals::ProcessEventHooks.push_back(eventW);
+
+	return 0;
+}*/

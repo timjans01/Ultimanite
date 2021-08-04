@@ -148,18 +148,12 @@ static void SetupOffsets()
 
 enum class EFortQuickBars : uint8_t
 {
-	Primary,
-	Secondary,
-	Max_None,
-	EFortQuickBars_MAX
+	Primary, Secondary, Max_None, EFortQuickBars_MAX
 };
 
 enum class EGameplayEffectDurationType : uint8_t
 {
-	Instant,
-	Infinite,
-	HasDuration,
-	EGameplayEffectDurationType_MAX
+	Instant, Infinite, HasDuration, EGameplayEffectDurationType_MAX
 };
 
 struct FSlateBrush
@@ -187,11 +181,7 @@ struct QuickBarPointer
 
 enum class EDynamicFoundationType : uint8_t
 {
-	Static = 0,
-	StartEnabled_Stationary = 1,
-	StartEnabled_Dynamic = 2,
-	StartDisabled = 3,
-	EDynamicFoundationType_MAX = 4
+	Static = 0, StartEnabled_Stationary = 1, StartEnabled_Dynamic = 2, StartDisabled = 3, EDynamicFoundationType_MAX = 4
 };
 
 namespace Kismet
@@ -304,7 +294,7 @@ namespace RuntimeOptions
 	{
 		static UObject* Default__FortRuntimeOptions = FindObject(L"FortRuntimeOptions /Script/FortniteGame.Default__FortRuntimeOptions");
 		static UObject* GetGameVersion = FindObject(L"Function /Script/FortniteGame.FortRuntimeOptions.GetGameVersion");
-		
+
 		if (GetGameVersion)
 		{
 			FString GameVersion;
@@ -455,7 +445,7 @@ namespace Player
 	static void BP_ApplyGameplayEffectToSelf(UObject* AbilitySystemComponent, UObject* GameplayEffectClass)
 	{
 		static UObject* BP_ApplyGameplayEffectToSelf = FindObject(L"Function /Script/GameplayAbilities.AbilitySystemComponent.BP_ApplyGameplayEffectToSelf");
-	
+
 		struct
 		{
 			UObject* GameplayEffectClass;
@@ -473,7 +463,6 @@ namespace Player
 
 	static void GrantGameplayAbility(UObject* GameplayAbilityClass)
 	{
-
 		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(Globals::Pawn) + __int64(Offsets::AbilitySystemComponentOffset));
 		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
 		if (!DefaultGameplayEffect)
@@ -749,7 +738,6 @@ namespace Pickup
 		OnRep_PrimaryPickupItemEntry(FortPickupAthena);
 		TossPickup(FortPickupAthena, Location, Globals::Pawn, 6, true);
 	}
-
 }
 
 namespace Controller
@@ -833,7 +821,7 @@ namespace TextActor
 	{
 		static auto c = FindObject(L"Class /Script/Engine.TextRenderActor");
 
-		auto TextRenderComponent = *(UObject**)(reinterpret_cast<__int64>(SpawnActorEasy(Globals::World, c, Location, Rotation)) + Offsets::TextRenderOffset /* UTextRenderComponent */);
+		auto TextRenderComponent = *(UObject**)(reinterpret_cast<__int64>(SpawnActorEasy(GetWorld(), c, Location, Rotation)) + Offsets::TextRenderOffset /* UTextRenderComponent */);
 
 		return TextRenderComponent;
 	}
@@ -964,7 +952,7 @@ namespace Render
 
 			if (map[i] == '#')
 			{
-				SpawnActorEasy(Globals::World, actorClass, location, rot);
+				SpawnActorEasy(GetWorld(), actorClass, location, rot);
 			}
 
 			//printf("CurrentX: %f, CurrentZ: %f\n", location.X, location.Z);
@@ -1002,7 +990,7 @@ namespace Inventory
 
 		ProcessEvent(Globals::FortInventory, HandleInventoryLocalUpdate, nullptr);
 		ProcessEvent(Globals::Controller, HandleWorldInventoryLocalUpdate, nullptr);
-		if (OnRep_QuickBar) 
+		if (OnRep_QuickBar)
 		{
 			ProcessEvent(Globals::Controller, OnRep_QuickBar, nullptr);
 			ProcessEvent(Globals::Quickbar, OnRep_SecondaryQuickBar, nullptr);
@@ -1025,19 +1013,16 @@ namespace Inventory
 	{
 		FString CurrentVersion = RuntimeOptions::GetGameVersion();
 
-		if (wcsstr(CurrentVersion.ToWString(), L"v4") ||
-			wcsstr(CurrentVersion.ToWString(), L"v5") ||
-			wcsstr(CurrentVersion.ToWString(), L"v6"))
+		if (wcsstr(CurrentVersion.ToWString(), L"v4") || wcsstr(CurrentVersion.ToWString(), L"v5") || wcsstr(CurrentVersion.ToWString(), L"v6"))
 		{
 			struct ItemEntrySize
 			{
-				unsigned char Unk00[0xD0]; 
+				unsigned char Unk00[0xD0];
 			};
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
 			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
-		else if (wcsstr(CurrentVersion.ToWString(), L"v7") || 
-				 wcsstr(CurrentVersion.ToWString(), L"v8"))
+		else if (wcsstr(CurrentVersion.ToWString(), L"v7") || wcsstr(CurrentVersion.ToWString(), L"v8"))
 		{
 			struct ItemEntrySize
 			{
@@ -1048,7 +1033,7 @@ namespace Inventory
 		}
 
 		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset))->Add(FortItem);
-		
+
 		Player::AddItemToQuickBars(Player::GetItemDefinition(FortItem), QuickbarIndex, Slot);
 	}
 
@@ -1063,5 +1048,4 @@ namespace Inventory
 
 		UpdateInventory();
 	}
-
 }

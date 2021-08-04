@@ -168,9 +168,9 @@ namespace Game
 		Globals::GameState = FindObject(L"Athena_GameState_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameState_C");
 		Globals::GameMode = FindObject(L"Athena_GameMode_C /Game/Athena/Maps/Athena_Terrain.Athena_Terrain.PersistentLevel.Athena_GameMode_C");
 
-		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{ 0, 0, 5000 }, {});
+		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{0, 0, 5000}, {});
 
-		Player::K2_TeleportTo(Globals::Pawn, FVector{ 0, 0, 5000 }, {});
+		Player::K2_TeleportTo(Globals::Pawn, FVector{0, 0, 5000}, {});
 
 		Globals::PlayerState = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::PlayerStateOffset);
 
@@ -192,7 +192,7 @@ namespace Game
 
 		// required so inventory does not get filled up quickly
 		*reinterpret_cast<int*>(__int64(Globals::Controller) + __int64(Offsets::OverriddenBackpackSizeOffset)) = 999;
-		
+
 		uint8_t* ControllerBitField = reinterpret_cast<uint8_t*>(__int64(Globals::Controller) + __int64(Offsets::bInfiniteAmmo));
 
 		// bInfiniteAmmo
@@ -204,9 +204,7 @@ namespace Game
 		if (RuntimeOptions::GetFortniteVersion().c_str() != "Unknown")
 		{
 			// builds that require GamePhase
-			if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "4") ||
-				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6") ||
-				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7"))
+			if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "4") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7"))
 			{
 				EAthenaGamePhase* CurrentGamePhase = reinterpret_cast<EAthenaGamePhase*>(__int64(Globals::GameState) + __int64(Offsets::GamePhaseOffset));
 				*CurrentGamePhase = EAthenaGamePhase::Aircraft;
@@ -215,11 +213,7 @@ namespace Game
 			}
 
 			// builds that require StartMatch
-			if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3") ||
-				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "5") ||
-				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8") ||
-				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "9") ||
-				strstr(RuntimeOptions::GetFortniteVersion().c_str(), "10"))
+			if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "5") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "9") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "10"))
 			{
 				GameMode::StartMatch(Globals::GameMode);
 			}
@@ -252,7 +246,6 @@ namespace Game
 
 			ProcessEvent(Globals::PlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
 		}
-
 	}
 
 	namespace Hooks
@@ -357,6 +350,21 @@ namespace Game
 				{
 					*reinterpret_cast<ENetRole*>(__int64(Vehicle) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_AutonomousProxy;
 				}
+
+				static bool bHasExecuted;
+
+				if (GetAsyncKeyState(VK_F7))
+				{
+					if (!bHasExecuted)
+					{
+						bHasExecuted = !bHasExecuted;
+						CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::F7), nullptr, 0, nullptr);
+					}
+				}
+				else
+				{
+					bHasExecuted = false;
+				}
 			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
@@ -374,7 +382,7 @@ namespace Game
 				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
 				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::FullMapNextCircleBrushOffset))->Brush = {}; // MinimapCircleBrush
 				reinterpret_cast<ToSlateBrush*>(__int64(Globals::GameState) + __int64(Offsets::MinimapSafeZoneBrushOffset))->Brush = {}; // MinimapCircleBrush
-				
+
 				auto CurrentFortVersion = Globals::FortniteVersion;
 
 				if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6.21"))
@@ -384,7 +392,7 @@ namespace Game
 				}
 
 				// setup duktape
-				UScript::SetupBindings();
+				UScript::InitBindings();
 
 				TArray<UObject*> FortHLODSMActors = GameplayStatics::GetAllActorsOfClass(FindObject(L"Class /Script/FortniteGame.FortHLODSMActor"));
 
@@ -401,13 +409,13 @@ namespace Game
 					// hide net debug UI in-game
 					Widget::RemoveFromViewport(NetDebugUI);
 				}
-				
+
 				// enable main menu in-game
 				auto bHasServerFinishedLoading = reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::bHasServerFinishedLoadingOffset);
 				*bHasServerFinishedLoading = true;
 
 				Player::ServerSetClientHasFinishedLoading(Globals::Controller);
-				
+
 				// used to show username in top left
 				PlayerState::OnRep_SquadId();
 
@@ -415,8 +423,8 @@ namespace Game
 				Globals::FortInventory = reinterpret_cast<InventoryPointer*>(__int64(Globals::Controller) + __int64(Offsets::WorldInventoryOffset))->Inventory;
 
 				if (QuickbarOffset != 0)
-				{	
-					Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{ -122398, -103873.02, 3962.51 }, {});
+				{
+					Globals::Quickbar = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortQuickBars"), FVector{-122398, -103873.02, 3962.51}, {});
 					reinterpret_cast<QuickBarPointer*>(__int64(Globals::Controller) + __int64(QuickbarOffset))->QuickBar = Globals::Quickbar;
 				}
 				else
@@ -424,7 +432,7 @@ namespace Game
 					QuickbarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.ClientQuickBars");
 					Globals::Quickbar = reinterpret_cast<QuickBarPointer*>(__int64(Globals::Controller) + __int64(QuickbarOffset))->QuickBar;
 				}
-				
+
 
 				// set owner of quickbar to current controller
 				Player::SetOwner(Globals::Quickbar, Globals::Controller);
@@ -442,13 +450,14 @@ namespace Game
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaExitVehicle.GA_AthenaExitVehicle_C"));
 					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaInVehicle.GA_AthenaInVehicle_C"));
 				}
-				
+
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall"), EFortQuickBars::Secondary, 0, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
-				
+
+				CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::ExecuteStartupScript), nullptr, 0, nullptr);
 				bDroppedLoadingScreen = true;
 			}
 
