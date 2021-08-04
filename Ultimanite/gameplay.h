@@ -358,7 +358,40 @@ namespace Game
 					if (!bHasExecuted)
 					{
 						bHasExecuted = !bHasExecuted;
-						CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::F7), nullptr, 0, nullptr);
+
+						//DEBUG CODE
+						
+						static UObject* botController = nullptr;
+						static UObject* botPawn = nullptr;
+
+						if (!botController)
+						{
+							botController = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/Athena_PlayerController.Athena_PlayerController_C"), FVector{0, 0, 10000}, {});
+
+							botPawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{0, 0, 2792}, {});
+
+							Player::Possess(botController, botPawn);
+
+							UObject* HeadCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
+							UObject* BodyCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
+
+							if (HeadCharacterPart && BodyCharacterPart)
+							{
+								Player::ServerChoosePart(botPawn, EFortCustomPartType::Body, BodyCharacterPart);
+								Player::ServerChoosePart(botPawn, EFortCustomPartType::Head, HeadCharacterPart);
+
+								auto PlayerState = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(botController) + Offsets::PlayerStateOffset);
+
+								ProcessEvent(PlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
+
+								Player::SetMaxHealth(botPawn, 999);
+								Player::SetHealth(botPawn, 999);
+							}
+						}
+						else
+						{
+							CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::F7), nullptr, 0, nullptr);
+						}
 					}
 				}
 				else

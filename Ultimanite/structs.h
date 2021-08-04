@@ -490,3 +490,10 @@ struct FGameplayAbilitySpecDef
 	UObject* Ability;
 	unsigned char Unk00[0x90];
 };
+
+struct FLinearColor {
+	float R; 
+	float G; 
+	float B; 
+	float A; 
+};

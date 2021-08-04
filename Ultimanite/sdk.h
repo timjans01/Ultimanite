@@ -356,6 +356,24 @@ namespace Player
 		ProcessEvent(Pawn, Jump, nullptr);
 	}
 
+	static void AddMovementInput(UObject* Pawn)
+	{
+		static UObject* AddMovementInput = FindObject(L"Function /Script/Engine.Pawn.AddMovementInput");
+
+		struct
+		{
+			FVector WorldDirection;
+			float ScaleValue;
+			bool bForc;
+		} Params;
+
+		Params.ScaleValue = 1;
+		Params.bForc = 1;
+		Params.WorldDirection = {1000, 1000, 0};
+
+		ProcessEvent(Pawn, AddMovementInput, &Params);
+	}
+
 	static bool CanJump(UObject* Pawn)
 	{
 		static UObject* Jump = FindObject(L"Function /Script/Engine.Character.CanJump");
@@ -682,6 +700,34 @@ namespace Player
 		params.PitchMultiplier = PitchMultiplier;
 
 		ProcessEvent(Target, ClientPlaySoundAtLocation, &params);
+	}
+
+	static auto SetHealth(UObject* inPawn, float SetHealthInput)
+	{
+		static auto fn = FindObject(L"Function /Script/FortniteGame.FortPawn.SetHealth");
+
+		ProcessEvent(inPawn, fn, &SetHealthInput);
+	}
+
+	static auto SetShield(UObject* inPawn, float SetShieldInput)
+	{
+		static auto fn = FindObject(L"Function /Script/FortniteGame.FortPawn.SetShield");
+
+		ProcessEvent(inPawn, fn, &SetShieldInput);
+	}
+
+	static auto SetMaxHealth(UObject* inPawn, float SetMaxHealthInput)
+	{
+		static auto fn = FindObject(L"Function /Script/FortniteGame.FortPawn.SetMaxHealth");
+
+		ProcessEvent(inPawn, fn, &SetMaxHealthInput);
+	}
+
+	static auto SetMaxShield(UObject* inPawn, float SetMaxShieldInput)
+	{
+		static auto fn = FindObject(L"Function /Script/FortniteGame.FortPawn.SetMaxShield");
+
+		ProcessEvent(inPawn, fn, &SetMaxShieldInput);
 	}
 }
 
