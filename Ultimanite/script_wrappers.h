@@ -324,13 +324,13 @@ static duk_ret_t duk_spawnpickupatlocation(duk_context* ctx)
 	return 0;
 }
 
-//FVector* UGetActorLocation(actorPointer);
+//int UGetActorLocation(actorPointer, index);
 static duk_ret_t duk_getactorlocation(duk_context* ctx)
 {
 	int ArgsLength = duk_get_top(ctx);
-	if (ArgsLength != 1)
+	if (ArgsLength != 2)
 	{
-		MessageBox(nullptr, L"This function takes 1 arguments!.", L"UGetActorLocation", 0);
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"UGetActorLocation", 0);
 		return DUK_RET_TYPE_ERROR;
 	}
 
@@ -342,10 +342,33 @@ static duk_ret_t duk_getactorlocation(duk_context* ctx)
 		return DUK_RET_TYPE_ERROR;
 	}
 
+	auto index = duk_get_int(ctx, 1);
+
 	//TODO: return an array or json.
 	auto location = AActor::GetLocation(actorObject);
 
-	duk_push_pointer(ctx, &location);
+	switch (index)
+	{
+	case 1: //X
+		{
+			duk_push_int(ctx, location.X);
+			printf("Return X: %f\n", location.X);
+			break;
+		}
+	case 2: //Y
+		{
+			duk_push_int(ctx, location.Y);
+			printf("Return Y: %f\n", location.Y);
+			break;
+		}
+	case 3: //Z
+		{
+			duk_push_int(ctx, location.Z);
+			printf("Return Z: %f\n", location.Z);
+			break;
+		}
+	default: duk_push_int(ctx, location.X);
+	}
 
 	return 1; //one return value
 } //UNDOCUMENTED
@@ -513,7 +536,7 @@ static duk_ret_t duk_renderasciiwithactor(duk_context* ctx)
 		//printf("%s", map.c_str());
 
 		printf("x: %f, y: %f, z: %f\n", Location.X, Location.Y, Location.Y);
-		
+
 		Render::MapWithActor(actor, map, actorWidth, actorHeight, lineLength, Location, Rotation);
 	}
 	else

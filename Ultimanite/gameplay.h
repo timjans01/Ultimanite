@@ -360,7 +360,10 @@ namespace Game
 						bHasExecuted = !bHasExecuted;
 
 						//DEBUG CODE
-						
+
+						CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::F7), nullptr, 0, nullptr);
+
+						/*
 						static UObject* botController = nullptr;
 						static UObject* botPawn = nullptr;
 
@@ -390,8 +393,9 @@ namespace Game
 						}
 						else
 						{
-							CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::F7), nullptr, 0, nullptr);
+							
 						}
+						*/
 					}
 				}
 				else

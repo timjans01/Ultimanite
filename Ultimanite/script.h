@@ -59,6 +59,9 @@ namespace UScript
 
 		duk_push_c_function(ctx, duk_getactorofclass, DUK_VARARGS);
 		duk_put_global_string(ctx, "UGetActorOfClass");
+		
+		duk_push_c_function(ctx, duk_getactorlocation, DUK_VARARGS);
+		duk_put_global_string(ctx, "UGetActorLocation");
 
 		duk_push_c_function(ctx, duk_displayobjectname, DUK_VARARGS);
 		duk_put_global_string(ctx, "UDisplayObjectName");
