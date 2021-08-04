@@ -1036,7 +1036,8 @@ namespace Inventory
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
 			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
-		else if (wcsstr(CurrentVersion.ToWString(), L"v7"))
+		else if (wcsstr(CurrentVersion.ToWString(), L"v7") || 
+				 wcsstr(CurrentVersion.ToWString(), L"v8"))
 		{
 			struct ItemEntrySize
 			{
@@ -1046,7 +1047,7 @@ namespace Inventory
 			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
 
-		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset))->Add(FortItem);;
+		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset))->Add(FortItem);
 		
 		Player::AddItemToQuickBars(Player::GetItemDefinition(FortItem), QuickbarIndex, Slot);
 	}

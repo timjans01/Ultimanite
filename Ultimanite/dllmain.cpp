@@ -84,7 +84,7 @@ void Setup()
 
 	auto CurrentEngineVersion = std::stof(RuntimeOptions::GetFortniteVersion());
 
-	if (7.4 <= CurrentEngineVersion)
+	if (7.4 <= CurrentEngineVersion && !strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8"))
 	{
 		ProcessEvent = decltype(ProcessEvent)(FindObject(L"FortEngine_")->VTableObject[0x41]);
 	}
