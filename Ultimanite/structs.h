@@ -1,5 +1,6 @@
 #pragma once
 #include "framework.h"
+#define PI (3.1415926535897932f)
 
 class StructMaker
 {
@@ -281,6 +282,34 @@ struct FVector
 	float X;
 	float Y;
 	float Z;
+
+	auto operator-(FVector A)
+	{
+		return FVector(this->X - A.X, this->Y - A.Y, this->Z - A.Z);
+	}
+
+	auto operator+(FVector A)
+	{
+		return FVector(this->X + A.X, this->Y + A.Y, this->Z + A.Z);
+	}
+
+	auto operator==(FVector A)
+	{
+		return (this->X == A.X && this->Y == A.Y && this->Z == A.Z);
+	}
+
+	auto operator!=(FVector A)
+	{
+		return (this->X != A.X && this->Y != A.Y && this->Z != A.Z);
+	}
+
+	auto ToRotator()
+	{
+		FRotator R;
+		R.Yaw = atan2(Y, X) * (180.f / PI);
+
+		return R;
+	}
 };
 
 struct FVector2D

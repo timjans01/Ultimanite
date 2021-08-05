@@ -475,7 +475,7 @@ static duk_ret_t duk_activateability(duk_context* ctx)
 		return DUK_RET_TYPE_ERROR;
 	}
 
-	Player::GrantGameplayAbility(abilityClass);
+	Player::GrantGameplayAbility(Globals::Pawn, abilityClass);
 
 	return 0;
 }
@@ -687,3 +687,231 @@ static duk_ret_t duk_processeventhook(duk_context* ctx)
 
 	return 0;
 }*/
+
+//void USpawnBot([X, Y, Z], [Pitch, Yaw, Roll]);
+static duk_ret_t duk_spawnbot(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength < 2)
+	{
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"USpawnBot", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto locationArraySize = duk_get_length(ctx, 0);
+
+	auto rotationArraySize = duk_get_length(ctx, 1);
+
+	if (rotationArraySize == 3 && locationArraySize == 3)
+	{
+		duk_get_prop_index(ctx, 0, 0);
+		auto x = duk_get_int(ctx, -1);
+
+		duk_get_prop_index(ctx, 0, 1);
+		auto y = duk_get_int(ctx, -1);
+
+		duk_get_prop_index(ctx, 0, 2);
+		auto z = duk_get_int(ctx, -1);
+
+		duk_get_prop_index(ctx, 1, 0);
+		auto pitch = duk_get_int(ctx, -1);
+
+		duk_get_prop_index(ctx, 1, 1);
+		auto yaw = duk_get_int(ctx, -1);
+
+		duk_get_prop_index(ctx, 1, 2);
+		auto roll = duk_get_int(ctx, -1);
+
+		FVector Location{x, y, z};
+		FRotator Rotation{pitch, yaw, roll};
+
+		if (!Globals::BotController)
+		{
+			Globals::BotController = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.AthenaAIController"), FVector{0, 0, 10000}, {});
+
+			Globals::BotPawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), Location, Rotation);
+
+			auto botPlayerState = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPlayerStateAthena"), FVector{0, 0, 2792}, {});
+
+			if (Globals::BotPawn)
+			{
+				Player::Possess(Globals::BotController, Globals::BotPawn);
+				Player::SetMaxHealth(Globals::BotPawn, 100);
+				Player::SetHealth(Globals::BotPawn, 100);
+			}
+			else
+			{
+				MessageBox(nullptr, L"Couldn't spawn a bot pawn.", L"USpawnBot", 0);
+				return DUK_RET_TYPE_ERROR;
+			}
+
+			auto PlayerStatePawn = reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::BotPawn) + Offsets::PlayerStatePawnOffset);
+			auto PlayerStateController = reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::BotController) + Offsets::PlayerStateOffset);
+
+			*PlayerStatePawn = botPlayerState;
+			*PlayerStateController = botPlayerState;
+
+			ProcessEvent(Globals::BotPawn, FindObject(L"Function /Script/Engine.Pawn.OnRep_PlayerState"), nullptr);
+			ProcessEvent(Globals::BotController, FindObject(L"Function /Script/Engine.Controller.OnRep_PlayerState"), nullptr);
+
+			auto sk = FindObject(L"SkeletalMesh /Game/Characters/Survivors/Female/Small/F_SML_Starter_01/Meshes/F_SML_Starter_Epic.F_SML_Starter_Epic");
+			if (sk)
+			{
+				Player::SetSkeletalMesh(Globals::BotPawn, sk);
+			}
+
+			//TODO: figure out why char parts doesn't show
+			/*
+			UObject* HeadCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
+			UObject* BodyCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
+
+			Player::ServerChoosePart(botPawn, EFortCustomPartType::Body, BodyCharacterPart);
+			Player::ServerChoosePart(botPawn, EFortCustomPartType::Head, HeadCharacterPart);
+
+			ProcessEvent(botPlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
+			*/
+
+			duk_push_pointer(ctx, Globals::BotPawn);
+		}
+		else
+		{
+			MessageBox(nullptr, L"Location/Rotations is not correct.", L"USpawnBot", 0);
+			return DUK_RET_TYPE_ERROR;
+		}
+	}
+
+	return 1;
+}
+
+//void UMoveBotToTarget(playerPawnPointer, X, Y, Z);
+static duk_ret_t duk_movebottotarget(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength < 4)
+	{
+		MessageBox(nullptr, L"This function takes 4 arguments!.", L"UMoveBotToTarget", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto pawn = (UObject*)duk_get_pointer(ctx, 0);
+
+	if (!pawn || Util::IsBadReadPtr(pawn))
+	{
+		MessageBox(nullptr, L"Pawn poinwer is invalid.", L"UMoveBotToTarget", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+
+	auto x = static_cast<float>(duk_get_int(ctx, 1));
+	auto y = static_cast<float>(duk_get_int(ctx, 2));
+	auto z = static_cast<float>(duk_get_int(ctx, 3));
+
+	FVector Location{x, y, z};
+
+	if (Globals::BotController)
+	{
+		Globals::BotTarget = Location;
+	}
+
+	return 0;
+}
+
+//void USetPlayerMaxHealth(playerPawnPointer, newMaxHealth);
+static duk_ret_t duk_setplayermaxhealth(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength < 2)
+	{
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"USetPlayerMaxHealth", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	UObject* playerPawnPointer = (UObject*)duk_get_pointer(ctx, 0);
+
+	if (!playerPawnPointer || Util::IsBadReadPtr(playerPawnPointer))
+	{
+		MessageBox(nullptr, L"Player pawn pointer is not valid.", L"USetPlayerMaxHealth", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto newMaxHealth = duk_get_int(ctx, 1);
+
+	Player::SetMaxHealth(playerPawnPointer, newMaxHealth);
+
+	return 0;
+}
+
+//void USetPlayerHealth(playerPawnPointer, newHealth);
+static duk_ret_t duk_setplayerhealth(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength < 2)
+	{
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"USetPlayerHealth", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	UObject* playerPawnPointer = (UObject*)duk_get_pointer(ctx, 0);
+
+	if (!playerPawnPointer || Util::IsBadReadPtr(playerPawnPointer))
+	{
+		MessageBox(nullptr, L"Player pawn pointer is not valid.", L"USetPlayerHealth", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto newHealth = duk_get_int(ctx, 1);
+
+	Player::SetHealth(playerPawnPointer, newHealth);
+
+	return 0;
+}
+
+//void USetPlayerMaxShield(playerPawnPointer, newHealth);
+static duk_ret_t duk_setplayermaxshield(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength < 2)
+	{
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"USetPlayerMaxShield", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	UObject* playerPawnPointer = (UObject*)duk_get_pointer(ctx, 0);
+
+	if (!playerPawnPointer || Util::IsBadReadPtr(playerPawnPointer))
+	{
+		MessageBox(nullptr, L"Player pawn pointer is not valid.", L"USetPlayerMaxShield", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto newHealth = duk_get_int(ctx, 1);
+
+	Player::SetMaxShield(playerPawnPointer, newHealth);
+
+	return 0;
+}
+
+//void USetPlayerShield(playerPawnPointer, newHealth);
+static duk_ret_t duk_setplayershield(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength < 2)
+	{
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"USetPlayerShield", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	UObject* playerPawnPointer = (UObject*)duk_get_pointer(ctx, 0);
+
+	if (!playerPawnPointer || Util::IsBadReadPtr(playerPawnPointer))
+	{
+		MessageBox(nullptr, L"Player pawn pointer is not valid.", L"USetPlayerShield", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto newHealth = duk_get_int(ctx, 1);
+
+	Player::SetShield(playerPawnPointer, newHealth);
+
+	return 0;
+}

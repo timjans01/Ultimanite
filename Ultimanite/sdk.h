@@ -20,6 +20,11 @@ namespace Globals
 	inline UObject* ChestsSound;
 	inline UObject* AmmoBoxSound;
 	inline const char* FortniteVersion;
+
+	//THIS IS TEMPORARY!!!!
+	inline UObject* BotController;
+	inline UObject* BotPawn;
+	inline FVector BotTarget;
 }
 
 namespace Offsets
@@ -31,9 +36,11 @@ namespace Offsets
 	DWORD QuickBarOffset;
 	DWORD GamePhaseOffset;
 	DWORD StrongMyHeroOffset;
+	DWORD CharacterMeshOffset;
 	DWORD HeroCharacterPartsOffset;
 	DWORD AdditionalDataOffset;
 	DWORD PlayerStateOffset;
+	DWORD PlayerStatePawnOffset;
 	DWORD FortItemEntryOffset;
 	DWORD PrimaryPickupItemEntryOffset;
 	DWORD InventoryOffset;
@@ -93,9 +100,11 @@ static void SetupOffsets()
 	Offsets::WorldInventoryOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.WorldInventory");
 	Offsets::GamePhaseOffset = FindOffset(L"EnumProperty /Script/FortniteGame.FortGameStateAthena.GamePhase");
 	Offsets::StrongMyHeroOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerControllerAthena.StrongMyHero");
+	Offsets::CharacterMeshOffset = FindOffset(L"ObjectProperty /Script/Engine.Character.Mesh");
 	Offsets::CharacterPartsOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerState.CharacterParts");
 	Offsets::AdditionalDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.CustomCharacterPart.AdditionalData");
 	Offsets::PlayerStateOffset = FindOffset(L"ObjectProperty /Script/Engine.Controller.PlayerState");
+	Offsets::PlayerStatePawnOffset = FindOffset(L"ObjectProperty /Script/Engine.Pawn.PlayerState");
 	Offsets::FortItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
 	Offsets::PrimaryPickupItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPickup.PrimaryPickupItemEntry");
 	Offsets::CountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortItemEntry.Count");
@@ -346,6 +355,71 @@ namespace Building
 	}
 }
 
+namespace AActor
+{
+	static FVector GetLocation(UObject* Target)
+	{
+		static auto K2_GetActorLocation = FindObject(L"Function /Script/Engine.Actor.K2_GetActorLocation");
+
+		struct
+		{
+			FVector ret;
+		} Params;
+
+		ProcessEvent(Target, K2_GetActorLocation, &Params);
+
+		return Params.ret;
+	}
+
+	static FRotator GetRotation(UObject* Target)
+	{
+		static auto K2_GetActorRotation = FindObject(L"Function /Script/Engine.Actor.K2_GetActorRotation");
+
+		struct
+		{
+			FRotator ret;
+		} Params;
+
+		ProcessEvent(Target, K2_GetActorRotation, &Params);
+
+		return Params.ret;
+	}
+
+	static void SetActorScale3D(UObject* Target, FVector NewScale3D = {})
+	{
+		static auto SetActorScale3D = FindObject(L"Function /Script/Engine.Actor.SetActorScale3D");
+
+		ProcessEvent(Target, SetActorScale3D, &NewScale3D);
+	}
+
+
+	static void Destroy(UObject* Target)
+	{
+		static auto K2_DestroyActor = FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor");
+
+		ProcessEvent(Target, K2_DestroyActor, nullptr);
+	}
+
+	static auto K2_SetActorRotation(UObject* Target, FRotator NewRotation)
+	{
+		static auto K2_SetActorRotation = FindObject(L"Function /Script/Engine.Actor.K2_SetActorRotation");
+
+		struct
+		{
+			FRotator NewRotation;
+			bool bTeleportPhysics;
+			bool ret;
+		} Params;
+
+		Params.NewRotation = NewRotation;
+		Params.bTeleportPhysics = false;
+
+		ProcessEvent(Target, K2_SetActorRotation, &Params);
+		
+		return Params.ret;
+	}
+}
+
 //TODO: Move to a class for multiplayer.
 namespace Player
 {
@@ -356,7 +430,7 @@ namespace Player
 		ProcessEvent(Pawn, Jump, nullptr);
 	}
 
-	static void AddMovementInput(UObject* Pawn)
+	static void AddMovementInput(UObject* botPawn, FVector Target)
 	{
 		static UObject* AddMovementInput = FindObject(L"Function /Script/Engine.Pawn.AddMovementInput");
 
@@ -369,9 +443,9 @@ namespace Player
 
 		Params.ScaleValue = 1;
 		Params.bForc = 1;
-		Params.WorldDirection = {1000, 1000, 0};
+		Params.WorldDirection = Target - AActor::GetLocation(botPawn);
 
-		ProcessEvent(Pawn, AddMovementInput, &Params);
+		ProcessEvent(botPawn, AddMovementInput, &Params);
 	}
 
 	static bool CanJump(UObject* Pawn)
@@ -479,9 +553,9 @@ namespace Player
 		ProcessEvent(AbilitySystemComponent, BP_ApplyGameplayEffectToSelf, &Params);
 	}
 
-	static void GrantGameplayAbility(UObject* GameplayAbilityClass)
+	static void GrantGameplayAbility(UObject* TargetPawn, UObject* GameplayAbilityClass)
 	{
-		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(Globals::Pawn) + __int64(Offsets::AbilitySystemComponentOffset));
+		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(TargetPawn) + __int64(Offsets::AbilitySystemComponentOffset));
 		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
 		if (!DefaultGameplayEffect)
 		{
@@ -526,6 +600,24 @@ namespace Player
 		Params.ChosenCharacterPart = ChosenCharacterPart;
 
 		ProcessEvent(Target, ServerChoosePart, &Params);
+	}
+
+	static void SetSkeletalMesh(UObject* InPawn, UObject* NewMesh)
+	{
+		auto SkeletalMeshComp = *(UObject**)(__int64(InPawn) + Offsets::CharacterMeshOffset);
+
+		static auto fn = FindObject(L"Function /Script/Engine.SkinnedMeshComponent.SetSkeletalMesh");
+
+		struct
+		{
+			UObject* NewMesh;
+			bool bReinitPos;
+		} Params;
+
+		Params.NewMesh = NewMesh;
+		Params.bReinitPos = false;
+
+		ProcessEvent(SkeletalMeshComp, fn, &Params);
 	}
 
 	static FGuid GetGuid(UObject* Target)
@@ -921,52 +1013,6 @@ namespace GameplayStatics
 		ProcessEvent(Default__GameplayStatics, GetAllActorsOfClass, &Params);
 
 		return Params.ReturnValue;
-	}
-}
-
-namespace AActor
-{
-	static FVector GetLocation(UObject* Target)
-	{
-		static auto K2_GetActorLocation = FindObject(L"Function /Script/Engine.Actor.K2_GetActorLocation");
-
-		struct
-		{
-			FVector ret;
-		} Params;
-
-		ProcessEvent(Target, K2_GetActorLocation, &Params);
-
-		return Params.ret;
-	}
-
-	static FRotator GetRotation(UObject* Target)
-	{
-		static auto K2_GetActorRotation = FindObject(L"Function /Script/Engine.Actor.K2_GetActorRotation");
-
-		struct
-		{
-			FRotator ret;
-		} Params;
-
-		ProcessEvent(Target, K2_GetActorRotation, &Params);
-
-		return Params.ret;
-	}
-
-	static void SetActorScale3D(UObject* Target, FVector NewScale3D = {})
-	{
-		static auto SetActorScale3D = FindObject(L"Function /Script/Engine.Actor.SetActorScale3D");
-
-		ProcessEvent(Target, SetActorScale3D, &NewScale3D);
-	}
-
-
-	static void Destroy(UObject* Target)
-	{
-		static auto K2_DestroyActor = FindObject(L"Function /Script/Engine.Actor.K2_DestroyActor");
-
-		ProcessEvent(Target, K2_DestroyActor, nullptr);
 	}
 }
 

@@ -90,6 +90,24 @@ namespace UScript
 		duk_push_c_function(ctx, duk_webclientget, DUK_VARARGS);
 		duk_put_global_string(ctx, "UWebClientGet");
 
+		duk_push_c_function(ctx, duk_spawnbot, DUK_VARARGS);
+		duk_put_global_string(ctx, "USpawnBot");
+
+		duk_push_c_function(ctx, duk_movebottotarget, DUK_VARARGS);
+		duk_put_global_string(ctx, "UMoveBotToTarget");
+
+		duk_push_c_function(ctx, duk_setplayermaxhealth, DUK_VARARGS);
+		duk_put_global_string(ctx, "USetPlayerMaxHealth");
+
+		duk_push_c_function(ctx, duk_setplayerhealth, DUK_VARARGS);
+		duk_put_global_string(ctx, "USetPlayerHealth");
+
+		duk_push_c_function(ctx, duk_setplayermaxshield, DUK_VARARGS);
+		duk_put_global_string(ctx, "USetPlayerMaxShield");
+
+		duk_push_c_function(ctx, duk_setplayershield, DUK_VARARGS);
+		duk_put_global_string(ctx, "USetPlayerShield");
+
 		/*duk_push_c_function(ctx, duk_triggerwin, DUK_VARARGS);
 		duk_put_global_string(ctx, "UTriggerWin");
 

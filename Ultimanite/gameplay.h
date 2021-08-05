@@ -340,6 +340,22 @@ namespace Game
 				*reinterpret_cast<ENetRole*>(__int64(Vehicle) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_Authority;
 			}
 
+
+			if (Globals::BotPawn && Object == Globals::BotPawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
+			{
+				/*
+				static auto CurrentLocation = AActor::GetLocation(Globals::BotPawn);
+				if (CurrentLocation == Globals::BotTarget)
+				{
+					Globals::BotTarget = {};
+				}
+				else if (CurrentLocation != FVector{})
+				{*/
+					AActor::K2_SetActorRotation(Globals::BotPawn, Globals::BotTarget.ToRotator());
+					Player::AddMovementInput(Globals::BotPawn, Globals::BotTarget);
+				//}
+			}
+
 			if (Object == Globals::Pawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
 			{
 				*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = (Player::IsInVehicle() ? ENetRole::ROLE_AutonomousProxy : ENetRole::ROLE_Authority);
@@ -362,40 +378,6 @@ namespace Game
 						//DEBUG CODE
 
 						CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::F7), nullptr, 0, nullptr);
-
-						/*
-						static UObject* botController = nullptr;
-						static UObject* botPawn = nullptr;
-
-						if (!botController)
-						{
-							botController = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/Athena_PlayerController.Athena_PlayerController_C"), FVector{0, 0, 10000}, {});
-
-							botPawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{0, 0, 2792}, {});
-
-							Player::Possess(botController, botPawn);
-
-							UObject* HeadCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
-							UObject* BodyCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
-
-							if (HeadCharacterPart && BodyCharacterPart)
-							{
-								Player::ServerChoosePart(botPawn, EFortCustomPartType::Body, BodyCharacterPart);
-								Player::ServerChoosePart(botPawn, EFortCustomPartType::Head, HeadCharacterPart);
-
-								auto PlayerState = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(botController) + Offsets::PlayerStateOffset);
-
-								ProcessEvent(PlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
-
-								Player::SetMaxHealth(botPawn, 999);
-								Player::SetHealth(botPawn, 999);
-							}
-						}
-						else
-						{
-							
-						}
-						*/
 					}
 				}
 				else
@@ -479,13 +461,13 @@ namespace Game
 
 				if (AbilitySystemComponent)
 				{
-					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
-					Player::GrantGameplayAbility(FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
-					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractSearch.GA_DefaultPlayer_InteractSearch_C"));
-					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractUse.GA_DefaultPlayer_InteractUse_C"));
-					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaEnterVehicle.GA_AthenaEnterVehicle_C"));
-					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaExitVehicle.GA_AthenaExitVehicle_C"));
-					Player::GrantGameplayAbility(FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaInVehicle.GA_AthenaInVehicle_C"));
+					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Sprint"));
+					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"Class /Script/FortniteGame.FortGameplayAbility_Jump"));
+					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractSearch.GA_DefaultPlayer_InteractSearch_C"));
+					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"BlueprintGeneratedClass /Game/Abilities/Player/Generic/Traits/DefaultPlayer/GA_DefaultPlayer_InteractUse.GA_DefaultPlayer_InteractUse_C"));
+					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaEnterVehicle.GA_AthenaEnterVehicle_C"));
+					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaExitVehicle.GA_AthenaExitVehicle_C"));
+					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaInVehicle.GA_AthenaInVehicle_C"));
 				}
 
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
