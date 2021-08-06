@@ -472,6 +472,9 @@ namespace Game
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
+Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/WoodItemData.WoodItemData"), EFortQuickBars::Max_None, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/StoneItemData.StoneItemData"), EFortQuickBars::Max_None, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/MetalItemData.MetalItemData"), EFortQuickBars::Max_None, 0, 999);
 
 				CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::ExecuteStartupScript), nullptr, 0, nullptr);
 				bDroppedLoadingScreen = true;
@@ -480,6 +483,34 @@ namespace Game
 			return ProcessEvent(Object, Function, Params);
 		}
 	}
+
+	FVector LastBuilded = FVector();
+	UObject* LastClass;
+
+	char(*Build)(__int64 A, __int64* B, __int64 C) = nullptr;
+	char BuildExec(__int64 A, __int64* B, __int64 C)
+	{
+		auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
+		auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
+		auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
+		auto bCanBuild = *(bool*)(A + 0x20);
+		auto _bCanBuild = *(bool*)(A + 0x28);
+
+		if (GetKeyState(VK_LBUTTON) & 0x8000
+			&& !bCanBuild && _bCanBuild &&
+			((LastBuilded.X != LastPreviewLocation.X ||
+				LastBuilded.Y != LastPreviewLocation.Y) ||
+				LastClass != CurrentBuildableClass))
+		{
+			LastBuilded = LastPreviewLocation;
+			LastClass = CurrentBuildableClass;
+			auto BuildingActor = SpawnActorEasy(GetWorld(), CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
+			Building::InitializeBuildingActor(BuildingActor);
+		}
+		return Build(A, B, C);
+	}
+
+
 
 	void Setup()
 	{
@@ -499,5 +530,15 @@ namespace Game
 			static UObject* SwitchLevel = FindObject(L"Function /Script/Engine.PlayerController.SwitchLevel");
 			PlayerController->Call(SwitchLevel, FString(L"Athena_Terrain?Game=/Game/Athena/Athena_GameMode.Athena_GameMode_C"));
 		}
+
+
+		Build = decltype(Build)(Util::FindPattern("48 89 5C 24 ? 57 48 83 EC 30 48 8B FA 48 8B D9 48 83 E9 80 49 8B D0"));
+
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
+
+		DetourAttach(&(void*&)Build, BuildExec);
+
+		DetourTransactionCommit();
 	}
 }
