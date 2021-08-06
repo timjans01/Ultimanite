@@ -285,12 +285,12 @@ struct FVector
 
 	auto operator-(FVector A)
 	{
-		return FVector(this->X - A.X, this->Y - A.Y, this->Z - A.Z);
+		return FVector { this->X - A.X, this->Y - A.Y, this->Z - A.Z };
 	}
 
 	auto operator+(FVector A)
 	{
-		return FVector(this->X + A.X, this->Y + A.Y, this->Z + A.Z);
+		return FVector { this->X + A.X, this->Y + A.Y, this->Z + A.Z };
 	}
 
 	auto operator==(FVector A)
