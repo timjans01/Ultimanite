@@ -937,7 +937,7 @@ static duk_ret_t duk_executeconsolecommand(duk_context* ctx)
 	int ArgsLength = duk_get_top(ctx);
 	if (ArgsLength != 1)
 	{
-		MessageBox(nullptr, L"This function takes 1 arguments!.", L"UExecuteConsoleCommand", 0);
+		MessageBox(nullptr, L"This function takes 1 argument!.", L"UExecuteConsoleCommand", 0);
 		return DUK_RET_TYPE_ERROR;
 	}
 
@@ -978,7 +978,7 @@ static duk_ret_t duk_readfileasstring(duk_context* ctx)
 	int ArgsLength = duk_get_top(ctx);
 	if (ArgsLength != 1)
 	{
-		MessageBox(nullptr, L"This function takes 1 arguments!.", L"UReadFileAsString", 0);
+		MessageBox(nullptr, L"This function takes 1 argument!.", L"UReadFileAsString", 0);
 		return DUK_RET_TYPE_ERROR;
 	}
 
@@ -995,4 +995,23 @@ static duk_ret_t duk_readfileasstring(duk_context* ctx)
 	}
 
 	return 1; 
+}
+
+//void UPrint("Hello World!");
+static duk_ret_t duk_print(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength != 1)
+	{
+		MessageBox(nullptr, L"This function takes 1 argument!.", L"UPrint", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	std::string msg = duk_get_string(ctx, 0);
+	std::wstring msgW(msg.begin(), msg.end());
+
+	printf("%s\n", msg);
+	Kismet::Say(msgW.c_str());
+
+	return 0;
 }

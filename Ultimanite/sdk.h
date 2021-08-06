@@ -91,6 +91,7 @@ namespace Offsets
 	DWORD RoleOffset;
 	DWORD bAlreadySearchedOffset;
 	DWORD TargetedBuildingOffset;
+	DWORD AuthorityGameMode;
 }
 
 static void SetupOffsets()
@@ -155,6 +156,7 @@ static void SetupOffsets()
 	Offsets::RoleOffset = FindOffset(L"ByteProperty /Script/Engine.Actor.Role");
 	Offsets::bAlreadySearchedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.BuildingContainer.bAlreadySearched");
 	Offsets::TargetedBuildingOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.TargetedBuilding");
+	Offsets::AuthorityGameMode = FindOffset(L"ObjectProperty /Script/Engine.World.AuthorityGameMode");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -280,6 +282,16 @@ namespace Kismet
 		Params.SpecificPlayer = Globals::Controller;
 
 		ProcessEvent(Default__KismetSystemLibrary, Conv_SoftClassReferenceToClass, &Params);
+	}
+
+	static void Say(FString Msg)
+	{
+		static UObject* World = GetWorld();
+		static UObject* AuthorityGameMode = *reinterpret_cast<UObject**>(__int64(World) + __int64(Offsets::AuthorityGameMode));
+
+		static UObject* Say = FindObject(L"Function /Script/Engine.GameMode.Say");
+
+		ProcessEvent(AuthorityGameMode, Say, &Msg);
 	}
 }
 
