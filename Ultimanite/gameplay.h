@@ -472,7 +472,7 @@ namespace Game
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
-Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/WoodItemData.WoodItemData"), EFortQuickBars::Max_None, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/WoodItemData.WoodItemData"), EFortQuickBars::Max_None, 0, 999);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/StoneItemData.StoneItemData"), EFortQuickBars::Max_None, 0, 999);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/MetalItemData.MetalItemData"), EFortQuickBars::Max_None, 0, 999);
 
@@ -484,32 +484,37 @@ Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition 
 		}
 	}
 
-	FVector LastBuilded = FVector();
-	UObject* LastClass;
 
-	char(*Build)(__int64 A, __int64* B, __int64 C) = nullptr;
+	char (*Build)(__int64 A, __int64* B, __int64 C) = nullptr;
+
 	char BuildExec(__int64 A, __int64* B, __int64 C)
 	{
-		auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
-		auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
-		auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
+		static FVector LastBuilded = FVector();
+		static UObject* LastClass;
 		auto bCanBuild = *(bool*)(A + 0x20);
 		auto _bCanBuild = *(bool*)(A + 0x28);
 
-		if (GetKeyState(VK_LBUTTON) & 0x8000
-			&& !bCanBuild && _bCanBuild &&
-			((LastBuilded.X != LastPreviewLocation.X ||
-				LastBuilded.Y != LastPreviewLocation.Y) ||
-				LastClass != CurrentBuildableClass))
+		if (bDroppedLoadingScreen && GetAsyncKeyState(VK_LBUTTON) & 0x8000 && _bCanBuild && !bCanBuild)
 		{
-			LastBuilded = LastPreviewLocation;
-			LastClass = CurrentBuildableClass;
-			auto BuildingActor = SpawnActorEasy(GetWorld(), CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
-			Building::InitializeBuildingActor(BuildingActor);
-		}
-		return Build(A, B, C);
-	}
+			auto TargetedBuilding = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::TargetedBuildingOffset);
+			auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
+			auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
+			auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
 
+			if (TargetedBuilding && !TargetedBuilding->GetFullName().starts_with(L"PBWA"))
+			{
+				if (!Util::IsBadReadPtr(CurrentBuildableClass) && !Util::IsBadReadPtr(&LastPreviewLocation) && !Util::IsBadReadPtr(&LastPreviewRotation))
+				{
+					if (((LastBuilded.X != LastPreviewLocation.X || LastBuilded.Y != LastPreviewLocation.Y) || LastClass != CurrentBuildableClass))
+					{
+						auto BuildingActor = SpawnActorEasy(GetWorld(), CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
+						Building::InitializeBuildingActor(BuildingActor);
+					}
+				}
+			}
+			return Build(A, B, C);
+		}
+	}
 
 
 	void Setup()

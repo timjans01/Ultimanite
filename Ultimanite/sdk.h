@@ -90,6 +90,7 @@ namespace Offsets
 	DWORD CheatManagerOffset;
 	DWORD RoleOffset;
 	DWORD bAlreadySearchedOffset;
+	DWORD TargetedBuildingOffset;
 }
 
 static void SetupOffsets()
@@ -153,6 +154,7 @@ static void SetupOffsets()
 	Offsets::CheatManagerOffset = FindOffset(L"ObjectProperty /Script/Engine.PlayerController.CheatManager");
 	Offsets::RoleOffset = FindOffset(L"ByteProperty /Script/Engine.Actor.Role");
 	Offsets::bAlreadySearchedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.BuildingContainer.bAlreadySearched");
+	Offsets::TargetedBuildingOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.TargetedBuilding");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -330,10 +332,7 @@ namespace RuntimeOptions
 
 			return GameVersion;
 		}
-		else
-		{
-			return L"Unknown";
-		}
+		return L"Unknown";
 	}
 
 	static std::string GetFortniteVersion()
@@ -461,7 +460,7 @@ namespace Player
 		} Params;
 
 		Params.ScaleValue = 1;
-		Params.bForc = 1;
+		Params.bForc = true;
 		Params.WorldDirection = Target;
 
 		ProcessEvent(botPawn, AddMovementInput, &Params);
@@ -581,20 +580,20 @@ namespace Player
 
 	static void GrantGameplayAbility(UObject* TargetPawn, UObject* GameplayAbilityClass)
 	{
-		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(TargetPawn) + __int64(Offsets::AbilitySystemComponentOffset));
+		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(TargetPawn) + static_cast<__int64>(Offsets::AbilitySystemComponentOffset));
 		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
 		if (!DefaultGameplayEffect)
 		{
 			DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_Health_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.Default__GE_Athena_PurpleStuff_Health_C");
 		}
 
-		TArray<struct FGameplayAbilitySpecDef>* GrantedAbilities = reinterpret_cast<TArray<struct FGameplayAbilitySpecDef>*>(__int64(DefaultGameplayEffect) + __int64(Offsets::GrantedAbilitiesOffset));
+		TArray<struct FGameplayAbilitySpecDef>* GrantedAbilities = reinterpret_cast<TArray<struct FGameplayAbilitySpecDef>*>(__int64(DefaultGameplayEffect) + static_cast<__int64>(Offsets::GrantedAbilitiesOffset));
 
 		// overwrite current gameplay ability with the one we want to activate
 		GrantedAbilities->operator[](0).Ability = GameplayAbilityClass;
 
 		// give this gameplay effect an infinite duration
-		*reinterpret_cast<EGameplayEffectDurationType*>(__int64(DefaultGameplayEffect) + __int64(Offsets::DurationPolicyOffset)) = EGameplayEffectDurationType::Infinite;
+		*reinterpret_cast<EGameplayEffectDurationType*>(__int64(DefaultGameplayEffect) + static_cast<__int64>(Offsets::DurationPolicyOffset)) = EGameplayEffectDurationType::Infinite;
 
 		// apply modified gameplay effect to ability system component
 		auto GameplayEffectClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C");
@@ -677,7 +676,7 @@ namespace Player
 
 	static void EquipWeaponByDefinition(UObject* Pawn, UObject* WeaponDefinition, FGuid ItemGuid)
 	{
-		TSoftObjectPtr<UObject*>* SoftWeaponActorClass = reinterpret_cast<TSoftObjectPtr<UObject*>*>(__int64(WeaponDefinition) + __int64(Offsets::WeaponActorClassOffset)); // TODO: change 0x708
+		TSoftObjectPtr<UObject*>* SoftWeaponActorClass = reinterpret_cast<TSoftObjectPtr<UObject*>*>(__int64(WeaponDefinition) + static_cast<__int64>(Offsets::WeaponActorClassOffset)); // TODO: change 0x708
 		UObject* WeaponActorClass = Kismet::Conv_SoftClassReferenceToClass(*SoftWeaponActorClass);
 
 		if (WeaponActorClass)
@@ -685,11 +684,11 @@ namespace Player
 			UObject* CurrentWeaponActor = SpawnActorEasy(GetWorld(), WeaponActorClass, {}, {});
 
 			// set owner of weapon actor
-			Player::SetOwner(CurrentWeaponActor, Globals::Pawn);
+			SetOwner(CurrentWeaponActor, Globals::Pawn);
 
 			// set weapon definition and GUID
-			*reinterpret_cast<UObject**>(__int64(CurrentWeaponActor) + __int64(Offsets::WeaponDataOffset)) = WeaponDefinition;
-			*reinterpret_cast<FGuid*>(__int64(CurrentWeaponActor) + __int64(Offsets::ItemEntryGuidOffset)) = ItemGuid;
+			*reinterpret_cast<UObject**>(__int64(CurrentWeaponActor) + static_cast<__int64>(Offsets::WeaponDataOffset)) = WeaponDefinition;
+			*reinterpret_cast<FGuid*>(__int64(CurrentWeaponActor) + static_cast<__int64>(Offsets::ItemEntryGuidOffset)) = ItemGuid;
 
 			// replicate weapon data and ammo, then give weapon to pawn
 			Weapon::OnRep_ReplicatedWeaponData(CurrentWeaponActor);
@@ -749,7 +748,7 @@ namespace Player
 	{
 		if (BuildingFoundation)
 		{
-			EDynamicFoundationType* CurrentFoundationType = reinterpret_cast<EDynamicFoundationType*>(__int64(BuildingFoundation) + __int64(Offsets::DynamicFoundationTypeOffset));
+			EDynamicFoundationType* CurrentFoundationType = reinterpret_cast<EDynamicFoundationType*>(__int64(BuildingFoundation) + static_cast<__int64>(Offsets::DynamicFoundationTypeOffset));
 
 			*CurrentFoundationType = DynamicFoundationType;
 		}
@@ -893,8 +892,8 @@ namespace Pickup
 	{
 		auto FortPickupAthena = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.FortPickupAthena"), Location, {});
 
-		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::CountOffset));
-		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + __int64(Offsets::PrimaryPickupItemEntryOffset) + __int64(Offsets::ItemDefinitionOffset));
+		auto EntryCount = reinterpret_cast<int*>(__int64(FortPickupAthena) + static_cast<__int64>(Offsets::PrimaryPickupItemEntryOffset) + static_cast<__int64>(Offsets::CountOffset));
+		auto EntryItemDefinition = reinterpret_cast<UObject**>(__int64(FortPickupAthena) + static_cast<__int64>(Offsets::PrimaryPickupItemEntryOffset) + static_cast<__int64>(Offsets::ItemDefinitionOffset));
 
 		*EntryCount = Count;
 		*EntryItemDefinition = ItemDefinition;
@@ -1091,7 +1090,7 @@ namespace Inventory
 			Player::SetOwningControllerForTemporaryItem(TemporaryItemInstance, Globals::Controller);
 		}
 
-		int* CurrentCount = reinterpret_cast<int*>(__int64(TemporaryItemInstance) + __int64(Offsets::ItemEntryOffset) + __int64(0xC));
+		int* CurrentCount = reinterpret_cast<int*>(__int64(TemporaryItemInstance) + static_cast<__int64>(Offsets::ItemEntryOffset) + static_cast<__int64>(0xC));
 		*CurrentCount = Count;
 
 		return TemporaryItemInstance;
@@ -1138,7 +1137,7 @@ namespace Inventory
 				unsigned char Unk00[0xD0];
 			};
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
-			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
+			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
 		else if (wcsstr(CurrentVersion.ToWString(), L"v7") || wcsstr(CurrentVersion.ToWString(), L"v8"))
 		{
@@ -1147,10 +1146,10 @@ namespace Inventory
 				unsigned char Unk00[0x120];
 			};
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
-			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
+			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
 
-		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + __int64(Offsets::InventoryOffset) + __int64(Offsets::ItemInstancesOffset))->Add(FortItem);
+		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemInstancesOffset))->Add(FortItem);
 
 		Player::AddItemToQuickBars(Player::GetItemDefinition(FortItem), QuickbarIndex, Slot);
 	}
