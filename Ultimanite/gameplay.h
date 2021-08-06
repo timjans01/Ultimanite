@@ -246,6 +246,8 @@ namespace Game
 
 			ProcessEvent(Globals::PlayerState, FindObject(L"Function /Script/FortniteGame.FortPlayerState.OnRep_CharacterParts"), nullptr);
 		}
+
+		Kismet::Say(L"Welcome to Lunar");
 	}
 
 	namespace Hooks

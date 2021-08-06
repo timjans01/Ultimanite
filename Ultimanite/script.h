@@ -10,7 +10,12 @@ namespace UScript
 
 	static void error_handler(void* udata, const char* msg) {
 		(void)udata;
-		printf("\n*** FATAL ERROR: %s\n%s", (msg ? msg : "no message"), "\n");
+		std::string message = "*** FATAL ERROR: ";
+		message.append(msg ? msg : "NO MESSAGE");
+		std::wstring messageW(message.begin(), message.end());
+
+		printf("\n%s\n\n", message);
+		Kismet::Say(messageW.c_str());
 		return;
 	}
 
@@ -122,6 +127,9 @@ namespace UScript
 
 		duk_push_c_function(ctx, duk_getgamepath, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UGetGamePath");
+
+		duk_push_c_function(ctx, duk_print, DUK_VARARGS); //DOC
+		duk_put_global_string(ctx, "UPrint");
 
 		/*duk_push_c_function(ctx, duk_triggerwin, DUK_VARARGS);
 		duk_put_global_string(ctx, "UTriggerWin");
