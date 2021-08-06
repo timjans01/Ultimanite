@@ -188,13 +188,13 @@ static duk_ret_t duk_getlocalplayer(duk_context* ctx)
 	return 1;
 }
 
-//void UScaleActor(ActorObjectPointer, x, y, z);
+//void UScaleActor(ActorObjectPointer, [x, y, z]);
 static duk_ret_t duk_scaleactor(duk_context* ctx)
 {
 	int ArgsLength = duk_get_top(ctx);
-	if (ArgsLength != 4)
+	if (ArgsLength != 2)
 	{
-		MessageBox(nullptr, L"This function takes 4 arguments!.", L"UScaleActor", 0);
+		MessageBox(nullptr, L"This function takes 2 arguments!.", L"UScaleActor", 0);
 		return DUK_RET_TYPE_ERROR;
 	}
 
@@ -206,11 +206,26 @@ static duk_ret_t duk_scaleactor(duk_context* ctx)
 		return DUK_RET_TYPE_ERROR;
 	}
 
-	auto x = static_cast<float>(duk_get_int(ctx, 1));
-	auto y = static_cast<float>(duk_get_int(ctx, 2));
-	auto z = static_cast<float>(duk_get_int(ctx, 3));
+	auto locationArraySize = duk_get_length(ctx, 1);
 
-	AActor::SetActorScale3D(actorObject, FVector{x, y, z});
+	if (locationArraySize == 3)
+	{
+		duk_get_prop_index(ctx, 1, 0);
+		auto x = static_cast<float>(duk_get_int(ctx, -1));
+
+		duk_get_prop_index(ctx, 1, 1);
+		auto y = static_cast<float>(duk_get_int(ctx, -1));
+
+		duk_get_prop_index(ctx, 1, 2);
+		auto z = static_cast<float>(duk_get_int(ctx, -1));
+
+		AActor::SetActorScale3D(actorObject, FVector{ x, y, z });
+	}
+	else
+	{
+		MessageBox(nullptr, L"Scale is not correct.", L"UScaleActor", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
 
 	return 0;
 }
