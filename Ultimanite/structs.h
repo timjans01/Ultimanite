@@ -308,6 +308,9 @@ struct FVector
 		FRotator R;
 		R.Yaw = atan2(Y, X) * (180.f / PI);
 
+		R.Pitch = 0; //atan2(Z, sqrt(X * X + Y * Y)) * (180.f / PI);
+
+		R.Roll = 0;
 		return R;
 	}
 };

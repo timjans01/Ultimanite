@@ -260,6 +260,25 @@ namespace Kismet
 
 		return Params.Class;
 	}
+
+	static void ExecuteConsoleCommand(FString Cmd)
+	{
+		static UObject* Default__KismetSystemLibrary = FindObject(L"KismetSystemLibrary /Script/Engine.Default__KismetSystemLibrary");
+		static UObject* Conv_SoftClassReferenceToClass = FindObject(L"Function /Script/Engine.KismetSystemLibrary.ExecuteConsoleCommand");
+
+		struct
+		{
+			UObject* WorldContextObject;
+			FString Command;
+			UObject* SpecificPlayer;
+		} Params;
+
+		Params.WorldContextObject = GetWorld();
+		Params.Command = Cmd;
+		Params.SpecificPlayer = Globals::Controller;
+
+		ProcessEvent(Default__KismetSystemLibrary, Conv_SoftClassReferenceToClass, &Params);
+	}
 }
 
 namespace Weapon
@@ -415,7 +434,7 @@ namespace AActor
 		Params.bTeleportPhysics = false;
 
 		ProcessEvent(Target, K2_SetActorRotation, &Params);
-		
+
 		return Params.ret;
 	}
 }
@@ -443,7 +462,7 @@ namespace Player
 
 		Params.ScaleValue = 1;
 		Params.bForc = 1;
-		Params.WorldDirection = Target - AActor::GetLocation(botPawn);
+		Params.WorldDirection = Target;
 
 		ProcessEvent(botPawn, AddMovementInput, &Params);
 	}
@@ -478,6 +497,13 @@ namespace Player
 		static UObject* Possess = FindObject(L"Function /Script/Engine.Controller.Possess");
 
 		ProcessEvent(InController, Possess, &InPawn);
+	}
+
+	static void SetControlRotation(UObject* InController, FRotator InRotator)
+	{
+		static UObject* SetControlRotation = FindObject(L"Function /Script/Engine.Controller.SetControlRotation");
+
+		ProcessEvent(InController, SetControlRotation, &InRotator);
 	}
 
 	static FGuid GetItemGuid(UObject* FortItem)

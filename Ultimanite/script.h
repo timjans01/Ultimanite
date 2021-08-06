@@ -42,71 +42,86 @@ namespace UScript
 
 		Globals::DukContext = ctx;
 
-		duk_push_c_function(ctx, duk_findobject, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_findobject, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UFindObject");
 
-		duk_push_c_function(ctx, duk_spawnactor, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_spawnactor, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USpawnActor");
 
-		duk_push_c_function(ctx, duk_destroyactor, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_destroyactor, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UDestroyActor");
 
-		duk_push_c_function(ctx, duk_additemtoinventory, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_additemtoinventory, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UAddItemToInventory");
 
-		duk_push_c_function(ctx, duk_scaleactor, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_scaleactor, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UScaleActor");
 
-		duk_push_c_function(ctx, duk_getactorofclass, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_getlocalplayer, DUK_VARARGS); //DOC
+		duk_put_global_string(ctx, "UGetLocalPlayer");
+
+		duk_push_c_function(ctx, duk_getactorofclass, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UGetActorOfClass");
 		
-		duk_push_c_function(ctx, duk_getactorlocation, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_getactorlocation, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UGetActorLocation");
 
-		duk_push_c_function(ctx, duk_displayobjectname, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_displayobjectname, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UDisplayObjectName");
 
-		duk_push_c_function(ctx, duk_teleportactor, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_teleportactor, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UTeleportActor");
 
-		duk_push_c_function(ctx, duk_spawnpickupatlocation, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_spawnpickupatlocation, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USpawnPickupAtLocation");
 
-		duk_push_c_function(ctx, duk_spawntextactor, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_spawntextactor, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USpawnTextActor");
 
-		duk_push_c_function(ctx, duk_settextactortext, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_settextactortext, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USetTextActorText");
 
-		duk_push_c_function(ctx, duk_activateability, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_activateability, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UActivateAbility");
 
-		duk_push_c_function(ctx, duk_renderasciiwithactor, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_renderasciiwithactor, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "URenderASCIIWithActor");
 
-		duk_push_c_function(ctx, duk_webclient, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_webclient, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UWebClient");
 
-		duk_push_c_function(ctx, duk_webclientget, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_webclientget, DUK_VARARGS);//DOC
 		duk_put_global_string(ctx, "UWebClientGet");
 
-		duk_push_c_function(ctx, duk_spawnbot, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_webclientpost, DUK_VARARGS);//DOC
+		duk_put_global_string(ctx, "UWebClientPost");
+
+		duk_push_c_function(ctx, duk_spawnbot, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USpawnBot");
 
-		duk_push_c_function(ctx, duk_movebottotarget, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_movebottotarget, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UMoveBotToTarget");
 
-		duk_push_c_function(ctx, duk_setplayermaxhealth, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_setplayermaxhealth, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USetPlayerMaxHealth");
 
-		duk_push_c_function(ctx, duk_setplayerhealth, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_setplayerhealth, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USetPlayerHealth");
 
-		duk_push_c_function(ctx, duk_setplayermaxshield, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_setplayermaxshield, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USetPlayerMaxShield");
 
-		duk_push_c_function(ctx, duk_setplayershield, DUK_VARARGS);
+		duk_push_c_function(ctx, duk_setplayershield, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "USetPlayerShield");
+
+		duk_push_c_function(ctx, duk_executeconsolecommand, DUK_VARARGS); //DOC
+		duk_put_global_string(ctx, "UExecuteConsoleCommand");
+
+		duk_push_c_function(ctx, duk_readfileasstring, DUK_VARARGS); //DOC
+		duk_put_global_string(ctx, "UReadFileAsString");
+
+		duk_push_c_function(ctx, duk_getgamepath, DUK_VARARGS); //DOC
+		duk_put_global_string(ctx, "UGetGamePath");
 
 		/*duk_push_c_function(ctx, duk_triggerwin, DUK_VARARGS);
 		duk_put_global_string(ctx, "UTriggerWin");

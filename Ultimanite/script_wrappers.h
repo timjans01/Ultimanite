@@ -173,6 +173,21 @@ static duk_ret_t duk_getactorofclass(duk_context* ctx)
 	return 1;
 }
 
+//UObject* UGetLocalPlayer();
+static duk_ret_t duk_getlocalplayer(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength < 0)
+	{
+		MessageBox(nullptr, L"This function takes 0 arguments!.", L"UGetLocalPlayer", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	duk_push_pointer(ctx, Globals::Pawn);
+
+	return 1;
+}
+
 //void UScaleActor(ActorObjectPointer, x, y, z);
 static duk_ret_t duk_scaleactor(duk_context* ctx)
 {
@@ -352,26 +367,26 @@ static duk_ret_t duk_getactorlocation(duk_context* ctx)
 	case 1: //X
 		{
 			duk_push_int(ctx, location.X);
-			printf("Return X: %f\n", location.X);
+			//printf("Return X: %f\n", location.X);
 			break;
 		}
 	case 2: //Y
 		{
 			duk_push_int(ctx, location.Y);
-			printf("Return Y: %f\n", location.Y);
+			//printf("Return Y: %f\n", location.Y);
 			break;
 		}
 	case 3: //Z
 		{
 			duk_push_int(ctx, location.Z);
-			printf("Return Z: %f\n", location.Z);
+			//printf("Return Z: %f\n", location.Z);
 			break;
 		}
 	default: duk_push_int(ctx, location.X);
 	}
 
 	return 1; //one return value
-} //UNDOCUMENTED
+}
 
 //UObject* USpawnTextActor([X, Y, Z], [Pitch, Yaw, Roll]);
 static duk_ret_t duk_spawntextactor(duk_context* ctx)
@@ -535,7 +550,7 @@ static duk_ret_t duk_renderasciiwithactor(duk_context* ctx)
 
 		//printf("%s", map.c_str());
 
-		printf("x: %f, y: %f, z: %f\n", Location.X, Location.Y, Location.Y);
+		//printf("x: %f, y: %f, z: %f\n", Location.X, Location.Y, Location.Y);
 
 		Render::MapWithActor(actor, map, actorWidth, actorHeight, lineLength, Location, Rotation);
 	}
@@ -773,11 +788,11 @@ static duk_ret_t duk_spawnbot(duk_context* ctx)
 
 			duk_push_pointer(ctx, Globals::BotPawn);
 		}
-		else
-		{
-			MessageBox(nullptr, L"Location/Rotations is not correct.", L"USpawnBot", 0);
-			return DUK_RET_TYPE_ERROR;
-		}
+	}
+	else
+	{
+		MessageBox(nullptr, L"Location/Rotations is not correct.", L"USpawnBot", 0);
+		return DUK_RET_TYPE_ERROR;
 	}
 
 	return 1;
@@ -914,4 +929,70 @@ static duk_ret_t duk_setplayershield(duk_context* ctx)
 	Player::SetShield(playerPawnPointer, newHealth);
 
 	return 0;
+}
+
+//void UExecuteConsoleCommand("Command");
+static duk_ret_t duk_executeconsolecommand(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength != 1)
+	{
+		MessageBox(nullptr, L"This function takes 1 arguments!.", L"UExecuteConsoleCommand", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	std::string cmd = duk_get_string(ctx, 0);
+
+	if (!cmd.empty())
+	{
+		std::wstring cmdW(cmd.begin(), cmd.end());
+		Kismet::ExecuteConsoleCommand(cmdW.c_str());
+	}
+	else
+	{
+		MessageBox(nullptr, L"Commnad cannot be empty!.", L"UExecuteConsoleCommand", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	return 0; 
+}
+
+//String UGetGamePath();
+static duk_ret_t duk_getgamepath(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength != 0)
+	{
+		MessageBox(nullptr, L"This function takes 0 arguments!.", L"UGetGamePath", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	duk_push_string(ctx, Util::GetRuntimePath().c_str());
+
+	return 1; 
+}
+
+//String UReadFileAsString("Path");
+static duk_ret_t duk_readfileasstring(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength != 1)
+	{
+		MessageBox(nullptr, L"This function takes 1 arguments!.", L"UReadFileAsString", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	std::string path = duk_get_string(ctx, 0);
+
+	if (!path.empty())
+	{
+		duk_push_string(ctx, Util::readAllText(path).c_str());
+	}
+	else
+	{
+		MessageBox(nullptr, L"Path cannot be empty!.", L"UReadFileAsString", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	return 1; 
 }

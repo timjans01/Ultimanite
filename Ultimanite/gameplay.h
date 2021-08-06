@@ -343,17 +343,14 @@ namespace Game
 
 			if (Globals::BotPawn && Object == Globals::BotPawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
 			{
-				/*
-				static auto CurrentLocation = AActor::GetLocation(Globals::BotPawn);
-				if (CurrentLocation == Globals::BotTarget)
+				auto Target = Globals::BotTarget - AActor::GetLocation(Globals::BotPawn);
+
+				if (AActor::GetLocation(Globals::BotPawn) != Target)
 				{
-					Globals::BotTarget = {};
+					Player::SetControlRotation(Globals::BotController, Target.ToRotator());
+					AActor::K2_SetActorRotation(Globals::BotPawn, Target.ToRotator());
+					Player::AddMovementInput(Globals::BotPawn, Target);
 				}
-				else if (CurrentLocation != FVector{})
-				{*/
-					AActor::K2_SetActorRotation(Globals::BotPawn, Globals::BotTarget.ToRotator());
-					Player::AddMovementInput(Globals::BotPawn, Globals::BotTarget);
-				//}
 			}
 
 			if (Object == Globals::Pawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
