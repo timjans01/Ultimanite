@@ -20,6 +20,7 @@ namespace Globals
 	inline UObject* ChestsSound;
 	inline UObject* AmmoBoxSound;
 	inline const char* FortniteVersion;
+	inline UObject* InviteToilet;
 
 	//THIS IS TEMPORARY!!!!
 	inline UObject* BotController;
@@ -92,6 +93,7 @@ namespace Offsets
 	DWORD bAlreadySearchedOffset;
 	DWORD TargetedBuildingOffset;
 	DWORD AuthorityGameMode;
+	DWORD InteractionText;
 }
 
 static void SetupOffsets()
@@ -157,6 +159,7 @@ static void SetupOffsets()
 	Offsets::bAlreadySearchedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.BuildingContainer.bAlreadySearched");
 	Offsets::TargetedBuildingOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.TargetedBuilding");
 	Offsets::AuthorityGameMode = FindOffset(L"ObjectProperty /Script/Engine.World.AuthorityGameMode");
+	Offsets::InteractionText = FindOffset(L"TextProperty /Script/FortniteGame.BuildingActor.InteractionText");
 }
 
 enum class EFortQuickBars : uint8_t
@@ -208,6 +211,25 @@ namespace Kismet
 		{
 			FString s;
 			FName ret;
+		};
+
+		Params params;
+		params.s = inString;
+
+		ProcessEvent(lib, func, &params);
+
+		return params.ret;
+	}
+
+	static auto FStringToFText(FString inString) -> FText
+	{
+		static auto lib = FindObject(L"KismetTextLibrary /Script/Engine.Default__KismetTextLibrary");
+		static auto func = FindObject(L"Function /Script/Engine.KismetTextLibrary.Conv_StringToText");
+
+		struct Params
+		{
+			FString s;
+			FText ret;
 		};
 
 		Params params;

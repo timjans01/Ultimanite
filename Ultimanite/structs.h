@@ -436,6 +436,11 @@ struct FKey {
 	char UnknownData_8[0x10]; // 0x08(0x10)
 };
 
+struct FText
+{
+	char data[0x18];
+};
+
 struct FActorSpawnParameters
 {
 	FActorSpawnParameters() : Name(), Template(nullptr), Owner(nullptr), Instigator(nullptr), OverrideLevel(nullptr),

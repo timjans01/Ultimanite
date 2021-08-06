@@ -170,7 +170,7 @@ namespace Game
 
 		Globals::Pawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), FVector{0, 0, 5000}, {});
 
-		Player::K2_TeleportTo(Globals::Pawn, FVector{0, 0, 5000}, {});
+		Player::K2_TeleportTo(Globals::Pawn, FVector{-280, 400, 5000}, {});
 
 		Globals::PlayerState = *reinterpret_cast<UObject**>(reinterpret_cast<uintptr_t>(Globals::Controller) + Offsets::PlayerStateOffset);
 
@@ -332,6 +332,10 @@ namespace Game
 						Player::ClientPlaySoundAtLocation(Globals::Controller, Globals::AmmoBoxSound, ContainerLocation, 1, 1);
 					}
 				}
+				else if (Globals::InviteToilet && CurrentParams->ReceivingActor == Globals::InviteToilet)
+				{
+					system("start https://discord.gg/lunarfn");
+				}
 			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerAttemptExitVehicle"))
@@ -342,6 +346,18 @@ namespace Game
 				*reinterpret_cast<ENetRole*>(__int64(Vehicle) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_Authority;
 			}
 
+
+			if (Globals::InviteToilet && Object == Globals::InviteToilet && wcsstr(FunctionName.c_str(), L"BlueprintCanInteract") && bDroppedLoadingScreen)
+			{
+				struct params
+				{
+					UObject* InteractingPawn;
+					bool ret;
+				};
+
+				static_cast<params*>(Params)->ret = true;
+				return nullptr;
+			}
 
 			if (Globals::BotPawn && Object == Globals::BotPawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
 			{
@@ -436,6 +452,30 @@ namespace Game
 
 				// used to show username in top left
 				PlayerState::OnRep_SquadId();
+
+				auto Text1 = TextActor::Spawn({150, 40, 2900}, {0, 180, 0});
+
+				TextActor::SetText(Text1, L"Welcome to Lunar!\nThis project was made by kemo, mix, danii, sizzy and kyiro.");
+
+				httplib::SSLClient cli("discord.com");
+
+				if (auto res = cli.Get("/invite/lunarfn"))
+				{
+					if (res->status == 200)
+					{
+						auto content = res->body;
+						(content.erase(content.find("members"), content.length())).erase(0, content.find("|") + 2);
+
+						auto message = "Current Lunar server members: " + content + "\nJoin using the toilet below!";
+
+						auto Text2 = TextActor::Spawn({-150, -200, 3000}, {0, 120, 0});
+
+						TextActor::SetText(Text2, std::wstring(message.begin(), message.end()).c_str());
+
+						Globals::InviteToilet = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/BuildingActors/Props/Building/ActorBlueprints/Containers/Athena_Prop_Bathroom_Toilet_01.Athena_Prop_Bathroom_Toilet_01_C"), {200, -170, 2800}, {0, 0, 0});
+					}
+				}
+
 
 				DWORD QuickbarOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.QuickBars");
 				Globals::FortInventory = reinterpret_cast<InventoryPointer*>(__int64(Globals::Controller) + __int64(Offsets::WorldInventoryOffset))->Inventory;
