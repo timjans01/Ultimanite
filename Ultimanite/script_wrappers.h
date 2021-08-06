@@ -206,9 +206,9 @@ static duk_ret_t duk_scaleactor(duk_context* ctx)
 		return DUK_RET_TYPE_ERROR;
 	}
 
-	auto locationArraySize = duk_get_length(ctx, 1);
+	auto arraySize = duk_get_length(ctx, 1);
 
-	if (locationArraySize == 3)
+	if (arraySize == 3)
 	{
 		duk_get_prop_index(ctx, 1, 0);
 		auto x = static_cast<float>(duk_get_int(ctx, -1));
