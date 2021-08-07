@@ -1,5 +1,7 @@
 #pragma once
 
+#define JM_XORSTR_DISABLE_AVX_INTRINSICS //OLD CPU SUPPORT
+
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 
 #include "httplib.h"
@@ -14,9 +16,10 @@
 #include <fstream>
 
 #include "source/duktape.h"
+#include "xorstr.hpp"
+#define _(str) xorstr_(str)
 
 //always the last
-#include "consts.h"
 #include "enums.h"
 #include "util.h"
 #include "structs.h"

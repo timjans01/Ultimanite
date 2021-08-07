@@ -21,6 +21,9 @@ namespace Globals
 	inline UObject* AmmoBoxSound;
 	inline const char* FortniteVersion;
 	inline UObject* InviteToilet;
+	inline __int64 BuildingOffset;
+	inline bool bCanBuild;
+	inline bool _bCanBuild;
 
 	//THIS IS TEMPORARY!!!!
 	inline UObject* BotController;
@@ -98,68 +101,68 @@ namespace Offsets
 
 static void SetupOffsets()
 {
-	Offsets::ItemInstancesOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortItemList.ItemInstances");
-	Offsets::ItemEntriesOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.FortItemList.ReplicatedEntries");
-	Offsets::ItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
-	Offsets::WorldInventoryOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.WorldInventory");
-	Offsets::GamePhaseOffset = FindOffset(L"EnumProperty /Script/FortniteGame.FortGameStateAthena.GamePhase");
-	Offsets::StrongMyHeroOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerControllerAthena.StrongMyHero");
-	Offsets::CharacterMeshOffset = FindOffset(L"ObjectProperty /Script/Engine.Character.Mesh");
-	Offsets::CharacterPartsOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerState.CharacterParts");
-	Offsets::AdditionalDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.CustomCharacterPart.AdditionalData");
-	Offsets::PlayerStateOffset = FindOffset(L"ObjectProperty /Script/Engine.Controller.PlayerState");
-	Offsets::PlayerStatePawnOffset = FindOffset(L"ObjectProperty /Script/Engine.Pawn.PlayerState");
-	Offsets::FortItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry");
-	Offsets::PrimaryPickupItemEntryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPickup.PrimaryPickupItemEntry");
-	Offsets::CountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortItemEntry.Count");
-	Offsets::ItemDefinitionOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition");
-	Offsets::MovementStyleOffset = FindOffset(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle");
-	Offsets::bWantsToSprintOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint");
-	Offsets::bInfiniteAmmo = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bInfiniteAmmo");
-	Offsets::CurrentWeaponOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPawn.CurrentWeapon");
-	Offsets::bInAircraftOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerStateAthena.bInAircraft");
-	Offsets::SlotsOffset = FindOffset(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots");
-	Offsets::PrimaryQuickbarOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar");
-	Offsets::CurrentFocusedSlotOffset = FindOffset(L"IntProperty /Script/FortniteGame.QuickBar.CurrentFocusedSlot");
-	Offsets::MinimapBackgroundBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapBackgroundBrush");
-	Offsets::MinimapSafeZoneBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneBrush");
-	Offsets::MinimapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapCircleBrush");
-	Offsets::MinimapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapNextCircleBrush");
-	Offsets::FloatingIslandBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FloatingIslandBrush");
-	Offsets::FloatingIslandBrushActivatedOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FloatingIslandBrushActivated");
-	Offsets::FullMapCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapCircleBrush");
-	Offsets::FullMapNextCircleBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapNextCircleBrush");
-	Offsets::MinimapSafeZoneFinalPosBrushOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneFinalPosBrush");
-	Offsets::bReadyToStartMatchOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bReadyToStartMatch");
-	Offsets::bClientPawnIsLoadedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bClientPawnIsLoaded");
-	Offsets::bHasClientFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasClientFinishedLoading");
-	Offsets::bHasServerFinishedLoadingOffset = FindOffset(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasServerFinishedLoading");
-	Offsets::CurrentBuildableClassOffset = FindOffset(L"ClassProperty /Script/FortniteGame.FortPlayerController.CurrentBuildableClass");
-	Offsets::LastBuildLocationOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapLoc");
-	Offsets::LastBuildRotationOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapRot");
-	Offsets::PreferredQuickbarSlotOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortWorldItemDefinition.PreferredQuickbarSlot");
-	Offsets::ItemGuidOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortItemEntry.ItemGuid");
-	Offsets::OverriddenBackpackSizeOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortPlayerController.OverriddenBackpackSize");
-	Offsets::GameViewportOffset = FindOffset(L"ObjectProperty /Script/Engine.Engine.GameViewport");
-	Offsets::ViewportConsoleOffset = FindOffset(L"ObjectProperty /Script/Engine.GameViewportClient.ViewportConsole");
-	Offsets::CurrentPlaylistDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortGameStateAthena.CurrentPlaylistData");
-	Offsets::InventoryOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortInventory.Inventory");
-	Offsets::WeaponActorClassOffset = FindOffset(L"SoftClassProperty /Script/FortniteGame.FortWeaponItemDefinition.WeaponActorClass");
-	Offsets::WeaponDataOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortWeapon.WeaponData");
-	Offsets::ItemEntryGuidOffset = FindOffset(L"StructProperty /Script/FortniteGame.FortWeapon.ItemEntryGuid");
-	Offsets::AmmoCountOffset = FindOffset(L"IntProperty /Script/FortniteGame.FortWeapon.AmmoCount");
-	Offsets::AbilitySystemComponentOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPawn.AbilitySystemComponent");
-	Offsets::DurationPolicyOffset = FindOffset(L"EnumProperty /Script/GameplayAbilities.GameplayEffect.DurationPolicy");
-	Offsets::GrantedAbilitiesOffset = FindOffset(L"ArrayProperty /Script/GameplayAbilities.GameplayEffect.GrantedAbilities");
-	Offsets::AbilityOffset = FindOffset(L"ClassProperty /Script/GameplayAbilities.GameplayAbilitySpecDef.Ability");
-	Offsets::TextRenderOffset = FindOffset(L"ObjectProperty /Script/Engine.TextRenderActor.TextRender");
-	Offsets::DynamicFoundationTypeOffset = FindOffset(L"EnumProperty /Script/FortniteGame.BuildingFoundation.DynamicFoundationType");
-	Offsets::CheatManagerOffset = FindOffset(L"ObjectProperty /Script/Engine.PlayerController.CheatManager");
-	Offsets::RoleOffset = FindOffset(L"ByteProperty /Script/Engine.Actor.Role");
-	Offsets::bAlreadySearchedOffset = FindOffset(L"BoolProperty /Script/FortniteGame.BuildingContainer.bAlreadySearched");
-	Offsets::TargetedBuildingOffset = FindOffset(L"ObjectProperty /Script/FortniteGame.FortPlayerController.TargetedBuilding");
-	Offsets::AuthorityGameMode = FindOffset(L"ObjectProperty /Script/Engine.World.AuthorityGameMode");
-	Offsets::InteractionText = FindOffset(L"TextProperty /Script/FortniteGame.BuildingActor.InteractionText");
+	Offsets::ItemInstancesOffset = FindOffset(_(L"ArrayProperty /Script/FortniteGame.FortItemList.ItemInstances"));
+	Offsets::ItemEntriesOffset = FindOffset(_(L"ArrayProperty /Script/FortniteGame.FortItemList.ReplicatedEntries"));
+	Offsets::ItemEntryOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry"));
+	Offsets::WorldInventoryOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPlayerController.WorldInventory"));
+	Offsets::GamePhaseOffset = FindOffset(_(L"EnumProperty /Script/FortniteGame.FortGameStateAthena.GamePhase"));
+	Offsets::StrongMyHeroOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPlayerControllerAthena.StrongMyHero"));
+	Offsets::CharacterMeshOffset = FindOffset(_(L"ObjectProperty /Script/Engine.Character.Mesh"));
+	Offsets::CharacterPartsOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPlayerState.CharacterParts"));
+	Offsets::AdditionalDataOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.CustomCharacterPart.AdditionalData"));
+	Offsets::PlayerStateOffset = FindOffset(_(L"ObjectProperty /Script/Engine.Controller.PlayerState"));
+	Offsets::PlayerStatePawnOffset = FindOffset(_(L"ObjectProperty /Script/Engine.Pawn.PlayerState"));
+	Offsets::FortItemEntryOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortWorldItem.ItemEntry"));
+	Offsets::PrimaryPickupItemEntryOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortPickup.PrimaryPickupItemEntry"));
+	Offsets::CountOffset = FindOffset(_(L"IntProperty /Script/FortniteGame.FortItemEntry.Count"));
+	Offsets::ItemDefinitionOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortItemEntry.ItemDefinition"));
+	Offsets::MovementStyleOffset = FindOffset(_(L"ByteProperty /Script/FortniteGame.FortPawn.CurrentMovementStyle"));
+	Offsets::bWantsToSprintOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.FortPlayerController.bWantsToSprint"));
+	Offsets::bInfiniteAmmo = FindOffset(_(L"BoolProperty /Script/FortniteGame.FortPlayerController.bInfiniteAmmo"));
+	Offsets::CurrentWeaponOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPawn.CurrentWeapon"));
+	Offsets::bInAircraftOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.FortPlayerStateAthena.bInAircraft"));
+	Offsets::SlotsOffset = FindOffset(_(L"ArrayProperty /Script/FortniteGame.QuickBar.Slots"));
+	Offsets::PrimaryQuickbarOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortQuickBars.PrimaryQuickBar"));
+	Offsets::CurrentFocusedSlotOffset = FindOffset(_(L"IntProperty /Script/FortniteGame.QuickBar.CurrentFocusedSlot"));
+	Offsets::MinimapBackgroundBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapBackgroundBrush"));
+	Offsets::MinimapSafeZoneBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneBrush"));
+	Offsets::MinimapCircleBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapCircleBrush"));
+	Offsets::MinimapNextCircleBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapNextCircleBrush"));
+	Offsets::FloatingIslandBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FloatingIslandBrush"));
+	Offsets::FloatingIslandBrushActivatedOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FloatingIslandBrushActivated"));
+	Offsets::FullMapCircleBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapCircleBrush"));
+	Offsets::FullMapNextCircleBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.FullMapNextCircleBrush"));
+	Offsets::MinimapSafeZoneFinalPosBrushOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortGameStateAthena.MinimapSafeZoneFinalPosBrush"));
+	Offsets::bReadyToStartMatchOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.FortPlayerController.bReadyToStartMatch"));
+	Offsets::bClientPawnIsLoadedOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.FortPlayerController.bClientPawnIsLoaded"));
+	Offsets::bHasClientFinishedLoadingOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasClientFinishedLoading"));
+	Offsets::bHasServerFinishedLoadingOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.FortPlayerController.bHasServerFinishedLoading"));
+	Offsets::CurrentBuildableClassOffset = FindOffset(_(L"ClassProperty /Script/FortniteGame.FortPlayerController.CurrentBuildableClass"));
+	Offsets::LastBuildLocationOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapLoc"));
+	Offsets::LastBuildRotationOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortPlayerController.LastBuildPreviewGridSnapRot"));
+	Offsets::PreferredQuickbarSlotOffset = FindOffset(_(L"IntProperty /Script/FortniteGame.FortWorldItemDefinition.PreferredQuickbarSlot"));
+	Offsets::ItemGuidOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortItemEntry.ItemGuid"));
+	Offsets::OverriddenBackpackSizeOffset = FindOffset(_(L"IntProperty /Script/FortniteGame.FortPlayerController.OverriddenBackpackSize"));
+	Offsets::GameViewportOffset = FindOffset(_(L"ObjectProperty /Script/Engine.Engine.GameViewport"));
+	Offsets::ViewportConsoleOffset = FindOffset(_(L"ObjectProperty /Script/Engine.GameViewportClient.ViewportConsole"));
+	Offsets::CurrentPlaylistDataOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortGameStateAthena.CurrentPlaylistData"));
+	Offsets::InventoryOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortInventory.Inventory"));
+	Offsets::WeaponActorClassOffset = FindOffset(_(L"SoftClassProperty /Script/FortniteGame.FortWeaponItemDefinition.WeaponActorClass"));
+	Offsets::WeaponDataOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortWeapon.WeaponData"));
+	Offsets::ItemEntryGuidOffset = FindOffset(_(L"StructProperty /Script/FortniteGame.FortWeapon.ItemEntryGuid"));
+	Offsets::AmmoCountOffset = FindOffset(_(L"IntProperty /Script/FortniteGame.FortWeapon.AmmoCount"));
+	Offsets::AbilitySystemComponentOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPawn.AbilitySystemComponent"));
+	Offsets::DurationPolicyOffset = FindOffset(_(L"EnumProperty /Script/GameplayAbilities.GameplayEffect.DurationPolicy"));
+	Offsets::GrantedAbilitiesOffset = FindOffset(_(L"ArrayProperty /Script/GameplayAbilities.GameplayEffect.GrantedAbilities"));
+	Offsets::AbilityOffset = FindOffset(_(L"ClassProperty /Script/GameplayAbilities.GameplayAbilitySpecDef.Ability"));
+	Offsets::TextRenderOffset = FindOffset(_(L"ObjectProperty /Script/Engine.TextRenderActor.TextRender"));
+	Offsets::DynamicFoundationTypeOffset = FindOffset(_(L"EnumProperty /Script/FortniteGame.BuildingFoundation.DynamicFoundationType"));
+	Offsets::CheatManagerOffset = FindOffset(_(L"ObjectProperty /Script/Engine.PlayerController.CheatManager"));
+	Offsets::RoleOffset = FindOffset(_(L"ByteProperty /Script/Engine.Actor.Role"));
+	Offsets::bAlreadySearchedOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.BuildingContainer.bAlreadySearched"));
+	Offsets::TargetedBuildingOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPlayerController.TargetedBuilding"));
+	Offsets::AuthorityGameMode = FindOffset(_(L"ObjectProperty /Script/Engine.World.AuthorityGameMode"));
+	Offsets::InteractionText = FindOffset(_(L"TextProperty /Script/FortniteGame.BuildingActor.InteractionText"));
 }
 
 enum class EFortQuickBars : uint8_t
@@ -372,7 +375,8 @@ namespace RuntimeOptions
 	static std::string GetFortniteVersion()
 	{
 		void* Result;
-		auto String = reinterpret_cast<FString* (__fastcall*)(void*)>(Util::FindPattern("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 41 B8 04 ? ? ? 48 8B D3"))(&Result)->ToString();
+		static auto Add = Util::FindPattern(_("40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 48 8B C8 41 B8 04 ? ? ? 48 8B D3"));
+		auto String = reinterpret_cast<FString* (__fastcall*)(void*)>(Add)(&Result)->ToString();
 		return String.substr(34, 4);
 	}
 }
@@ -381,7 +385,7 @@ namespace Building
 {
 	static bool IsInBuildMode()
 	{
-		auto func = FindObject(L"Function /Script/FortniteGame.FortPlayerController.IsInBuildMode");
+		static auto func = FindObject(L"Function /Script/FortniteGame.FortPlayerController.IsInBuildMode");
 
 		bool poop;
 
@@ -595,7 +599,7 @@ namespace Player
 
 	static void BP_ApplyGameplayEffectToSelf(UObject* AbilitySystemComponent, UObject* GameplayEffectClass)
 	{
-		static UObject* BP_ApplyGameplayEffectToSelf = FindObject(L"Function /Script/GameplayAbilities.AbilitySystemComponent.BP_ApplyGameplayEffectToSelf");
+		static UObject* BP_ApplyGameplayEffectToSelf = FindObject(_(L"Function /Script/GameplayAbilities.AbilitySystemComponent.BP_ApplyGameplayEffectToSelf"));
 
 		struct
 		{
@@ -615,10 +619,10 @@ namespace Player
 	static void GrantGameplayAbility(UObject* TargetPawn, UObject* GameplayAbilityClass)
 	{
 		UObject** AbilitySystemComponent = reinterpret_cast<UObject**>(__int64(TargetPawn) + static_cast<__int64>(Offsets::AbilitySystemComponentOffset));
-		UObject* DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C");
+		static UObject* DefaultGameplayEffect = FindObject(_(L"GE_Athena_PurpleStuff_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.Default__GE_Athena_PurpleStuff_C"));
 		if (!DefaultGameplayEffect)
 		{
-			DefaultGameplayEffect = FindObject(L"GE_Athena_PurpleStuff_Health_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.Default__GE_Athena_PurpleStuff_Health_C");
+			DefaultGameplayEffect = FindObject(_(L"GE_Athena_PurpleStuff_Health_C /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.Default__GE_Athena_PurpleStuff_Health_C"));
 		}
 
 		TArray<struct FGameplayAbilitySpecDef>* GrantedAbilities = reinterpret_cast<TArray<struct FGameplayAbilitySpecDef>*>(__int64(DefaultGameplayEffect) + static_cast<__int64>(Offsets::GrantedAbilitiesOffset));
@@ -630,10 +634,10 @@ namespace Player
 		*reinterpret_cast<EGameplayEffectDurationType*>(__int64(DefaultGameplayEffect) + static_cast<__int64>(Offsets::DurationPolicyOffset)) = EGameplayEffectDurationType::Infinite;
 
 		// apply modified gameplay effect to ability system component
-		auto GameplayEffectClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C");
+		static auto GameplayEffectClass = FindObject(_(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff.GE_Athena_PurpleStuff_C"));
 		if (!GameplayEffectClass)
 		{
-			GameplayEffectClass = FindObject(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.GE_Athena_PurpleStuff_Health_C");
+			GameplayEffectClass = FindObject(_(L"BlueprintGeneratedClass /Game/Athena/Items/Consumables/PurpleStuff/GE_Athena_PurpleStuff_Health.GE_Athena_PurpleStuff_Health_C"));
 		}
 		BP_ApplyGameplayEffectToSelf(*AbilitySystemComponent, GameplayEffectClass);
 	}
