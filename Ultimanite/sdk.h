@@ -1194,13 +1194,16 @@ namespace Inventory
 
 	static void AddItemToInventoryWithUpdate(UObject* ItemDef, EFortQuickBars QuickbarIndex, int Slot, int Count)
 	{
-		UObject* ItemInstance = CreateItem(ItemDef, Count);
-
-		if (ItemInstance)
+		if (ItemDef)
 		{
-			AddItemToInventory(ItemInstance, QuickbarIndex, Slot);
-		}
+			UObject* ItemInstance = CreateItem(ItemDef, Count);
 
-		UpdateInventory();
+			if (ItemInstance)
+			{
+				AddItemToInventory(ItemInstance, QuickbarIndex, Slot);
+			}
+
+			UpdateInventory();
+		}
 	}
 }

@@ -250,8 +250,10 @@ namespace Game
 		Kismet::Say(L"Welcome to Lunar");
 	}
 
-	UObject* BuildingActorLast;
-	UObject* LastClass;
+	static UObject* BuildingActorLast;
+	static UObject* LastClass;
+
+	static bool bIsStarted;
 
 	namespace Hooks
 	{
@@ -259,6 +261,21 @@ namespace Game
 		{
 			auto ObjectName = Object->GetFullName();
 			auto FunctionName = Function->GetFullName();
+
+			if (Function->GetName().find(L"BP_PlayButton") != std::wstring::npos)
+			{
+				if (!bIsStarted)
+				{
+					auto PlayerController = GetFirstPlayerController(GetWorld());
+
+					if (PlayerController)
+					{
+						static UObject* SwitchLevel = FindObject(L"Function /Script/Engine.PlayerController.SwitchLevel");
+						PlayerController->Call(SwitchLevel, FString(L"Athena_Terrain?Game=/Game/Athena/Athena_GameMode.Athena_GameMode_C"));
+					}
+					bIsStarted = true;
+				}
+			}
 
 			// called when we load into a level
 			if (wcsstr(FunctionName.c_str(), L"ReadyToStartMatch"))
@@ -410,20 +427,19 @@ namespace Game
 
 					if (bDroppedLoadingScreen && GetAsyncKeyState(VK_LBUTTON) & 0x8000 && Globals::_bCanBuild && !Globals::bCanBuild)
 					{
-						auto TargetedBuilding = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::TargetedBuildingOffset);
 						auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
 						auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
 						auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
 
-						if (BuildingActorLast && LastClass)
+						if (BuildingActorLast && LastClass && !Util::IsBadReadPtr(BuildingActorLast) && !Util::IsBadReadPtr(LastClass))
 						{
 							auto CurrentLoc = AActor::GetLocation(BuildingActorLast);
-							if (CurrentLoc.X == LastPreviewLocation.X &&
-								CurrentLoc.Y == LastPreviewLocation.Y &&
-								CurrentLoc.Z == LastPreviewLocation.Z &&
-								LastClass == CurrentBuildableClass)
+							if (!Util::IsBadReadPtr(&CurrentLoc.X) && !Util::IsBadReadPtr(&CurrentLoc.Z) && !Util::IsBadReadPtr(&CurrentLoc.Z) && !Util::IsBadReadPtr(&LastPreviewLocation.X) && !Util::IsBadReadPtr(&LastPreviewLocation.Z) && !Util::IsBadReadPtr(&LastPreviewLocation.Z) && !Util::IsBadReadPtr(CurrentBuildableClass))
 							{
-								return ProcessEvent(Object, Function, Params);
+								if (CurrentLoc.X == LastPreviewLocation.X && CurrentLoc.Y == LastPreviewLocation.Y && CurrentLoc.Z == LastPreviewLocation.Z && LastClass == CurrentBuildableClass)
+								{
+									return ProcessEvent(Object, Function, Params);
+								}
 							}
 						}
 
@@ -548,9 +564,15 @@ namespace Game
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_RoofS.BuildingItemData_RoofS"), EFortQuickBars::Secondary, 3, 1);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/WoodItemData.WoodItemData"), EFortQuickBars::Max_None, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/StoneItemData.StoneItemData"), EFortQuickBars::Max_None, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/MetalItemData.MetalItemData"), EFortQuickBars::Max_None, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/WoodItemData.WoodItemData"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/StoneItemData.StoneItemData"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/MetalItemData.MetalItemData"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Athena/Items/Ammo/AmmoDataRockets.AmmoDataRockets"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataShells.AmmoDataShells"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataBulletsMedium.AmmoDataBulletsMedium"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataBulletsLight.AmmoDataBulletsLight"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataBulletsHeavy.AmmoDataBulletsHeavy"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoInfinite.AmmoInfinite"), EFortQuickBars::Secondary, 0, 999);
 
 				CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::ExecuteStartupScript), nullptr, 0, nullptr);
 				bDroppedLoadingScreen = true;
@@ -560,7 +582,8 @@ namespace Game
 			{
 				FString* ScriptNameF = (FString*)Params;
 
-				if (!ScriptNameF->IsValid()) {
+				if (!ScriptNameF->IsValid())
+				{
 					return nullptr;
 				}
 
@@ -568,21 +591,25 @@ namespace Game
 				std::wstring argW;
 				std::string arg;
 
-				if (ScriptNameW.find(L" ") != std::wstring::npos)
-					argW = ScriptNameW.substr(ScriptNameW.find(L" ") + 1);
-					std::string a(argW.begin(), argW.end());
-					arg = a;
+				if (ScriptNameW.find(L" ") != std::wstring::npos) argW = ScriptNameW.substr(ScriptNameW.find(L" ") + 1);
+				std::string a(argW.begin(), argW.end());
+				arg = a;
 
-				if (wcsstr(ScriptNameW.c_str(), L"test")) {
-					if (!argW.empty()) {
+				if (wcsstr(ScriptNameW.c_str(), L"test"))
+				{
+					if (!argW.empty())
+					{
 						Kismet::Say(argW.c_str());
-					} else {
+					}
+					else
+					{
 						Kismet::Say(L"No Args");
 					}
 				}
-				if (wcsstr(ScriptNameW.c_str(), L"eval")) {
+				/*if (wcsstr(ScriptNameW.c_str(), L"eval"))
+				{
 					UScript::eval(arg);
-				}
+				}*/
 				if (wcsstr(ScriptNameW.c_str(), L"SpawnActor"))
 				{
 					static UObject* Class = StaticLoadObjectEasy(FindObject(L"Class /Script/Engine.BlueprintGeneratedClass", true), argW.c_str());
@@ -591,10 +618,11 @@ namespace Game
 					ActorLocation.X += 500;
 					if (Class)
 					{
-						SpawnActorEasy(GetWorld(), Class, ActorLocation, FRotator{ 0, 0, 0 });
+						SpawnActorEasy(GetWorld(), Class, ActorLocation, FRotator{0, 0, 0});
 						Kismet::Say(L"Actor Spawned!");
 					}
-					else {
+					else
+					{
 						Kismet::Say(L"Class Not Found!");
 					}
 				}
@@ -609,7 +637,6 @@ namespace Game
 
 	void (*Build)(__int64 A, __int64* B, __int64 C) = nullptr;
 
-	
 
 	void BuildExec(__int64 A, __int64* B, __int64 C)
 	{
@@ -634,15 +661,6 @@ namespace Game
 		DetourTransactionCommit();
 
 		SetupOffsets();
-
-		auto PlayerController = GetFirstPlayerController(GetWorld());
-
-		if (PlayerController)
-		{
-			static UObject* SwitchLevel = FindObject(L"Function /Script/Engine.PlayerController.SwitchLevel");
-			PlayerController->Call(SwitchLevel, FString(L"Athena_Terrain?Game=/Game/Athena/Athena_GameMode.Athena_GameMode_C"));
-		}
-
 
 		Build = decltype(Build)(Util::FindPattern(_("48 89 5C 24 ? 57 48 83 EC 30 48 8B FA 48 8B D9 48 83 E9 80 49 8B D0")));
 
