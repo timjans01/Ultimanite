@@ -534,3 +534,13 @@ struct FLinearColor {
 	float B; 
 	float A; 
 };
+
+enum class EFortResourceType : uint8_t
+{
+	Wood = 0,
+	Stone = 1,
+	Metal = 2,
+	Permanite = 3,
+	None = 4,
+	EFortResourceType_MAX = 5
+};

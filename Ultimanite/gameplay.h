@@ -38,7 +38,7 @@ namespace Game
 			if (IsMatchingGuid(Player::GetGuid(CurrentItemInstance), Guid))
 			{
 				// if the GUIDs match, equip the weapon
-				Player::EquipWeaponByDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
+				Player::EquipWeaponDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
 			}
 		}
 	}
@@ -233,6 +233,10 @@ namespace Game
 		{
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_25x25_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_25x36"), EDynamicFoundationType::Static);
 		}
+		if ((strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8")))
+		{
+			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_50x50_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_50x53_Volcano"), EDynamicFoundationType::Static);
+		}
 
 		Player::ServerReadyToStartMatch(Globals::Controller);
 
@@ -420,6 +424,7 @@ namespace Game
 					bHasExecuted = false;
 				}
 
+				static bool bHasPressedRButton;
 				if (Building::IsInBuildMode())
 				{
 					Globals::bCanBuild = *reinterpret_cast<bool*>(Globals::BuildingOffset + 0x20);
@@ -447,6 +452,32 @@ namespace Game
 						BuildingActorLast = BuildingActor;
 						LastClass = CurrentBuildableClass;
 						Building::InitializeBuildingActor(BuildingActor);
+					}
+					else if ((bDroppedLoadingScreen) && GetAsyncKeyState(VK_RBUTTON) && !bHasPressedRButton)
+					{
+						auto BuildPreviewMarker = *(UObject**)(__int64(Globals::Controller) + Offsets::BuildPreviewMarkerOffset);
+						auto bCurrentlyBeingEdited = *(bool*)(__int64(BuildPreviewMarker) + Offsets::CurrentlyBeingEditedOffset);
+						if (!bCurrentlyBeingEdited)
+						{
+							bHasPressedRButton = true;
+							auto CurrentResourceType = *(EFortResourceType*)(__int64(Globals::Controller) + Offsets::CurrentResourceTypeOffset);
+							switch (CurrentResourceType)
+							{
+							case EFortResourceType::Wood:
+								Building::K2_SetCurrentResourceType(Globals::Controller, EFortResourceType::Stone);
+								break;
+							case EFortResourceType::Stone:
+								Building::K2_SetCurrentResourceType(Globals::Controller, EFortResourceType::Metal);
+								break;
+							case EFortResourceType::Metal:
+								Building::K2_SetCurrentResourceType(Globals::Controller, EFortResourceType::Wood);
+								break;
+							}
+						}
+					}
+					else
+					{
+						bHasPressedRButton = false;
 					}
 				}
 			}
@@ -606,10 +637,6 @@ namespace Game
 						Kismet::Say(L"No Args");
 					}
 				}
-				/*if (wcsstr(ScriptNameW.c_str(), L"eval"))
-				{
-					UScript::eval(arg);
-				}*/
 				if (wcsstr(ScriptNameW.c_str(), L"SpawnActor"))
 				{
 					static UObject* Class = StaticLoadObjectEasy(FindObject(L"Class /Script/Engine.BlueprintGeneratedClass", true), argW.c_str());
@@ -625,6 +652,31 @@ namespace Game
 					{
 						Kismet::Say(L"Class Not Found!");
 					}
+				}
+				if (wcsstr(ScriptNameW.c_str(), L"SpawnPickup"))
+				{
+					int ObjectCount = GlobalObjects ? GlobalObjects->ObjectCount : ObjObjects->NumElements;
+
+					for (int i = 0; i < ObjectCount; i++)
+					{
+						auto Object = FindObjectById(i);
+
+						if (Object == nullptr)
+						{
+							continue;
+						}
+
+						if (Object->GetFullName().find(argW) != std::wstring::npos)
+						{
+							if (Object->GetFullName().find(L"ItemDefinition") != std::wstring::npos)
+							{
+								FVector ActorLocation = AActor::GetLocation(Globals::Pawn);
+								SpawnPickupAtLocation(Object, 1, ActorLocation);
+								return 0;
+							}
+						}
+					}
+					Kismet::Say(L"Item Definition Was not found!");
 				}
 
 				return nullptr;

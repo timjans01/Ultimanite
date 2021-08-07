@@ -97,6 +97,9 @@ namespace Offsets
 	DWORD TargetedBuildingOffset;
 	DWORD AuthorityGameMode;
 	DWORD InteractionText;
+	DWORD CurrentlyBeingEditedOffset;
+	DWORD BuildPreviewMarkerOffset;
+	DWORD CurrentResourceTypeOffset;
 }
 
 static void SetupOffsets()
@@ -163,6 +166,9 @@ static void SetupOffsets()
 	Offsets::TargetedBuildingOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPlayerController.TargetedBuilding"));
 	Offsets::AuthorityGameMode = FindOffset(_(L"ObjectProperty /Script/Engine.World.AuthorityGameMode"));
 	Offsets::InteractionText = FindOffset(_(L"TextProperty /Script/FortniteGame.BuildingActor.InteractionText"));
+	Offsets::CurrentlyBeingEditedOffset = FindOffset(_(L"BoolProperty /Script/FortniteGame.BuildingSMActor.bCurrentlyBeingEdited"));
+	Offsets::BuildPreviewMarkerOffset = FindOffset(_(L"ObjectProperty /Script/FortniteGame.FortPlayerController.BuildPreviewMarker"));
+	Offsets::CurrentResourceTypeOffset = FindOffset(_(L"ByteProperty /Script/FortniteGame.FortPlayerController.CurrentResourceType"));
 }
 
 enum class EFortQuickBars : uint8_t
@@ -408,6 +414,23 @@ namespace Building
 		params.SpawningController = Globals::Controller;
 
 		ProcessEvent(BuildingActor, InitializeKismetSpawnedBuildingActor, &params);
+	}
+	
+	static void K2_SetCurrentResourceType(UObject* Controller, EFortResourceType ResourceType)
+	{
+		static UObject* K2_SetCurrentResourceType = FindObject(L"Function /Script/FortniteGame.FortKismetLibrary.K2_SetCurrentResourceType");
+		static UObject* FortKismetLib = FindObject(L"FortKismetLibrary /Script/FortniteGame.Default__FortKismetLibrary");
+
+		struct 
+		{
+			UObject* Controller;
+			EFortResourceType Resource;
+		} params;
+
+		params.Controller = Controller;
+		params.Resource = ResourceType;
+
+		ProcessEvent(FortKismetLib, K2_SetCurrentResourceType, &params);
 	}
 }
 
