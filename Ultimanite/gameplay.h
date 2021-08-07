@@ -250,6 +250,9 @@ namespace Game
 		Kismet::Say(L"Welcome to Lunar");
 	}
 
+	UObject* BuildingActorLast;
+	UObject* LastClass;
+
 	namespace Hooks
 	{
 		void* ProcessEventDetour(UObject* Object, UObject* Function, void* Params)
@@ -399,6 +402,37 @@ namespace Game
 				{
 					bHasExecuted = false;
 				}
+
+				if (Building::IsInBuildMode())
+				{
+					Globals::bCanBuild = *reinterpret_cast<bool*>(Globals::BuildingOffset + 0x20);
+					Globals::_bCanBuild = *reinterpret_cast<bool*>(Globals::BuildingOffset + 0x28);
+
+					if (bDroppedLoadingScreen && GetAsyncKeyState(VK_LBUTTON) & 0x8000 && Globals::_bCanBuild && !Globals::bCanBuild)
+					{
+						auto TargetedBuilding = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::TargetedBuildingOffset);
+						auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
+						auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
+						auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
+
+						if (BuildingActorLast && LastClass)
+						{
+							auto CurrentLoc = AActor::GetLocation(BuildingActorLast);
+							if (CurrentLoc.X == LastPreviewLocation.X &&
+								CurrentLoc.Y == LastPreviewLocation.Y &&
+								CurrentLoc.Z == LastPreviewLocation.Z &&
+								LastClass == CurrentBuildableClass)
+							{
+								return ProcessEvent(Object, Function, Params);
+							}
+						}
+
+						auto BuildingActor = SpawnActorEasy(GetWorld(), CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
+						BuildingActorLast = BuildingActor;
+						LastClass = CurrentBuildableClass;
+						Building::InitializeBuildingActor(BuildingActor);
+					}
+				}
 			}
 
 			if (wcsstr(FunctionName.c_str(), L"ServerLoadingScreenDropped"))
@@ -527,35 +561,20 @@ namespace Game
 	}
 
 
-	char (*Build)(__int64 A, __int64* B, __int64 C) = nullptr;
+	void (*Build)(__int64 A, __int64* B, __int64 C) = nullptr;
 
-	char BuildExec(__int64 A, __int64* B, __int64 C)
+	
+
+	void BuildExec(__int64 A, __int64* B, __int64 C)
 	{
-		static FVector LastBuilded = FVector();
-		static UObject* LastClass;
-		auto bCanBuild = *(bool*)(A + 0x20);
-		auto _bCanBuild = *(bool*)(A + 0x28);
+		Globals::BuildingOffset = A;
 
-		if (bDroppedLoadingScreen && GetAsyncKeyState(VK_LBUTTON) & 0x8000 && _bCanBuild && !bCanBuild)
-		{
-			auto TargetedBuilding = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::TargetedBuildingOffset);
-			auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
-			auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
-			auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
 
-			if (TargetedBuilding && !TargetedBuilding->GetFullName().starts_with(L"PBWA"))
-			{
-				if (!Util::IsBadReadPtr(CurrentBuildableClass) && !Util::IsBadReadPtr(&LastPreviewLocation) && !Util::IsBadReadPtr(&LastPreviewRotation))
-				{
-					if (((LastBuilded.X != LastPreviewLocation.X || LastBuilded.Y != LastPreviewLocation.Y) || LastClass != CurrentBuildableClass))
-					{
-						auto BuildingActor = SpawnActorEasy(GetWorld(), CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
-						Building::InitializeBuildingActor(BuildingActor);
-					}
-				}
-			}
-			return Build(A, B, C);
-		}
+		DetourDetach(&(void*&)Build, BuildExec);
+
+		DetourTransactionCommit();
 	}
 
 

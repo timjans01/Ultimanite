@@ -21,6 +21,9 @@ namespace Globals
 	inline UObject* AmmoBoxSound;
 	inline const char* FortniteVersion;
 	inline UObject* InviteToilet;
+	inline __int64 BuildingOffset;
+	inline bool bCanBuild;
+	inline bool _bCanBuild;
 
 	//THIS IS TEMPORARY!!!!
 	inline UObject* BotController;
@@ -381,7 +384,7 @@ namespace Building
 {
 	static bool IsInBuildMode()
 	{
-		auto func = FindObject(L"Function /Script/FortniteGame.FortPlayerController.IsInBuildMode");
+		static auto func = FindObject(L"Function /Script/FortniteGame.FortPlayerController.IsInBuildMode");
 
 		bool poop;
 
