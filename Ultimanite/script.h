@@ -131,6 +131,9 @@ namespace UScript
 		duk_push_c_function(ctx, duk_print, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "UPrint");
 
+		duk_push_c_function(ctx, duk_jump, DUK_VARARGS); //DOC
+		duk_put_global_string(ctx, "UJump");
+
 		/*duk_push_c_function(ctx, duk_triggerwin, DUK_VARARGS);
 		duk_put_global_string(ctx, "UTriggerWin");
 

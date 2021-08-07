@@ -827,7 +827,7 @@ static duk_ret_t duk_movebottotarget(duk_context* ctx)
 
 	if (!pawn || Util::IsBadReadPtr(pawn))
 	{
-		MessageBox(nullptr, L"Pawn poinwer is invalid.", L"UMoveBotToTarget", 0);
+		MessageBox(nullptr, L"Pawn pointer is invalid.", L"UMoveBotToTarget", 0);
 		return DUK_RET_TYPE_ERROR;
 	}
 
@@ -1027,6 +1027,29 @@ static duk_ret_t duk_print(duk_context* ctx)
 
 	printf("%s\n", msg);
 	Kismet::Say(msgW.c_str());
+
+	return 0;
+}
+
+//void UJump(playerPawnPointer);
+static duk_ret_t duk_jump(duk_context* ctx)
+{
+	int ArgsLength = duk_get_top(ctx);
+	if (ArgsLength != 1)
+	{
+		MessageBox(nullptr, L"This function takes 1 argument!.", L"UJump", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	auto pawn = (UObject*)duk_get_pointer(ctx, 0);
+
+	if (!pawn || Util::IsBadReadPtr(pawn))
+	{
+		MessageBox(nullptr, L"Pawn pointer is invalid.", L"UJump", 0);
+		return DUK_RET_TYPE_ERROR;
+	}
+
+	Player::Jump(pawn);
 
 	return 0;
 }
