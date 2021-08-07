@@ -1,6 +1,6 @@
 #include "framework.h"
 #include "gameplay.h"
-#include "offsets.h"
+#include "patterns.h"
 
 void Setup()
 {

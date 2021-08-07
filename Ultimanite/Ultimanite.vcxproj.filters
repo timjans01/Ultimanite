@@ -35,9 +35,6 @@
     <ClInclude Include="ue4\ue4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="consts.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -47,7 +44,7 @@
     <ClInclude Include="gameplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="offsets.h">
+    <ClInclude Include="patterns.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="script.h">
@@ -57,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="httplib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xorstr.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

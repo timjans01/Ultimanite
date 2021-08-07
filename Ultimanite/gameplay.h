@@ -236,8 +236,8 @@ namespace Game
 
 		Player::ServerReadyToStartMatch(Globals::Controller);
 
-		UObject* HeadCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1");
-		UObject* BodyCharacterPart = FindObject(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01");
+		UObject* HeadCharacterPart = FindObject(_(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Heads/F_Med_Head1.F_Med_Head1"));
+		UObject* BodyCharacterPart = FindObject(_(L"CustomCharacterPart /Game/Characters/CharacterParts/Female/Medium/Bodies/F_Med_Soldier_01.F_Med_Soldier_01"));
 
 		if (HeadCharacterPart && BodyCharacterPart)
 		{
@@ -337,7 +337,7 @@ namespace Game
 				}
 				else if (Globals::InviteToilet && CurrentParams->ReceivingActor == Globals::InviteToilet)
 				{
-					system("start https://discord.gg/lunarfn");
+					system(_("start https://discord.gg/lunarfn"));
 				}
 			}
 
@@ -489,18 +489,18 @@ namespace Game
 
 				auto Text1 = TextActor::Spawn({150, 40, 2900}, {0, 180, 0});
 
-				TextActor::SetText(Text1, L"Welcome to Lunar!\nThis project was made by kemo, mix, danii, sizzy and kyiro.");
+				TextActor::SetText(Text1, _(L"Welcome to Lunar!\nThis project was made by kemo, mix, danii, sizzy and kyiro."));
 
 				httplib::SSLClient cli("discord.com");
 
-				if (auto res = cli.Get("/invite/lunarfn"))
+				if (auto res = cli.Get(_("/invite/lunarfn")))
 				{
 					if (res->status == 200)
 					{
 						auto content = res->body;
 						(content.erase(content.find("members"), content.length())).erase(0, content.find("|") + 2);
 
-						auto message = "Current Lunar server members: " + content + "\nJoin using the toilet below!";
+						auto message = _("Current Lunar server members: ") + content + _("\nJoin using the toilet below!");
 
 						auto Text2 = TextActor::Spawn({-150, -200, 3000}, {0, 120, 0});
 
@@ -543,7 +543,7 @@ namespace Game
 					Player::GrantGameplayAbility(Globals::Pawn, FindObject(L"BlueprintGeneratedClass /Game/Athena/DrivableVehicles/GA_AthenaInVehicle.GA_AthenaInVehicle_C"));
 				}
 
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01"), EFortQuickBars::Primary, 0, 1);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(_(L"FortWeaponMeleeItemDefinition /Game/Athena/Items/Weapons/WID_Harvest_Pickaxe_Athena_C_T01.WID_Harvest_Pickaxe_Athena_C_T01")), EFortQuickBars::Primary, 0, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Wall.BuildingItemData_Wall"), EFortQuickBars::Secondary, 0, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Floor.BuildingItemData_Floor"), EFortQuickBars::Secondary, 1, 1);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortBuildingItemDefinition /Game/Items/Weapons/BuildingTools/BuildingItemData_Stair_W.BuildingItemData_Stair_W"), EFortQuickBars::Secondary, 2, 1);
@@ -598,7 +598,7 @@ namespace Game
 		}
 
 
-		Build = decltype(Build)(Util::FindPattern("48 89 5C 24 ? 57 48 83 EC 30 48 8B FA 48 8B D9 48 83 E9 80 49 8B D0"));
+		Build = decltype(Build)(Util::FindPattern(_("48 89 5C 24 ? 57 48 83 EC 30 48 8B FA 48 8B D9 48 83 E9 80 49 8B D0")));
 
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());

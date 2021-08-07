@@ -493,7 +493,7 @@ static duk_ret_t duk_activateability(duk_context* ctx)
 	int ArgsLength = duk_get_top(ctx);
 	if (ArgsLength < 1)
 	{
-		MessageBox(nullptr, L"This function takes 1 arguments!.", L"UActivateAbility", 0);
+		MessageBox(nullptr, _(L"This function takes 1 arguments!."), _(L"UActivateAbility"), 0);
 		return DUK_RET_TYPE_ERROR;
 	}
 
@@ -501,7 +501,7 @@ static duk_ret_t duk_activateability(duk_context* ctx)
 
 	if (!abilityClass || Util::IsBadReadPtr(abilityClass))
 	{
-		MessageBox(nullptr, L"Ability class pointer is not valid.", L"UActivateAbility", 0);
+		MessageBox(nullptr, _(L"Ability class pointer is not valid."), _(L"UActivateAbility"), 0);
 		return DUK_RET_TYPE_ERROR;
 	}
 
@@ -757,7 +757,7 @@ static duk_ret_t duk_spawnbot(duk_context* ctx)
 
 		if (!Globals::BotController)
 		{
-			Globals::BotController = SpawnActorEasy(GetWorld(), FindObject(L"Class /Script/FortniteGame.AthenaAIController"), FVector{0, 0, 10000}, {});
+			Globals::BotController = SpawnActorEasy(GetWorld(), FindObject(_(L"Class /Script/FortniteGame.AthenaAIController")), FVector{0, 0, 10000}, {});
 
 			Globals::BotPawn = SpawnActorEasy(GetWorld(), FindObject(L"BlueprintGeneratedClass /Game/Athena/PlayerPawn_Athena.PlayerPawn_Athena_C"), Location, Rotation);
 
@@ -1025,7 +1025,7 @@ static duk_ret_t duk_print(duk_context* ctx)
 	std::string msg = duk_get_string(ctx, 0);
 	std::wstring msgW(msg.begin(), msg.end());
 
-	printf("%s\n", msg);
+	printf("%s\n", msg.c_str());
 	Kismet::Say(msgW.c_str());
 
 	return 0;

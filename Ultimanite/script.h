@@ -3,18 +3,13 @@
 
 namespace UScript
 {
-	static void balls()
-	{
-		duk_eval_string_noresult(Globals::DukContext, Util::readAllText("C:\\Users\\karee\\Desktop\\UScript.js").c_str());
-	}
-
 	static void error_handler(void* udata, const char* msg) {
 		(void)udata;
 		std::string message = "*** FATAL ERROR: ";
 		message.append(msg ? msg : "NO MESSAGE");
 		std::wstring messageW(message.begin(), message.end());
 
-		printf("\n%s\n\n", message);
+		printf("\n%s\n\n", message.c_str());
 		Kismet::Say(messageW.c_str());
 		return;
 	}
@@ -87,7 +82,7 @@ namespace UScript
 		duk_put_global_string(ctx, "USetTextActorText");
 
 		duk_push_c_function(ctx, duk_activateability, DUK_VARARGS); //DOC
-		duk_put_global_string(ctx, "UActivateAbility");
+		duk_put_global_string(ctx, _("UActivateAbility"));
 
 		duk_push_c_function(ctx, duk_renderasciiwithactor, DUK_VARARGS); //DOC
 		duk_put_global_string(ctx, "URenderASCIIWithActor");
