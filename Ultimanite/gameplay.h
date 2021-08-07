@@ -38,7 +38,7 @@ namespace Game
 			if (IsMatchingGuid(Player::GetGuid(CurrentItemInstance), Guid))
 			{
 				// if the GUIDs match, equip the weapon
-				Player::EquipWeaponDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
+				Player::EquipWeaponByDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
 			}
 		}
 	}
