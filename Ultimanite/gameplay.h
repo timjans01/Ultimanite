@@ -522,6 +522,52 @@ namespace Game
 				bDroppedLoadingScreen = true;
 			}
 
+			if (wcsstr(FunctionName.c_str(), L"CheatScript"))
+			{
+				FString* ScriptNameF = (FString*)Params;
+
+				if (!ScriptNameF->IsValid()) {
+					return nullptr;
+				}
+
+				std::wstring ScriptNameW = ScriptNameF->ToWString();
+				std::wstring argW;
+				std::string arg;
+
+				if (ScriptNameW.find(L" ") != std::wstring::npos)
+					argW = ScriptNameW.substr(ScriptNameW.find(L" ") + 1);
+					std::string a(argW.begin(), argW.end());
+					arg = a;
+
+				if (wcsstr(ScriptNameW.c_str(), L"test")) {
+					if (!argW.empty()) {
+						Kismet::Say(argW.c_str());
+					} else {
+						Kismet::Say(L"No Args");
+					}
+				}
+				if (wcsstr(ScriptNameW.c_str(), L"eval")) {
+					UScript::eval(arg);
+				}
+				if (wcsstr(ScriptNameW.c_str(), L"SpawnActor"))
+				{
+					static UObject* Class = StaticLoadObjectEasy(FindObject(L"Class /Script/Engine.BlueprintGeneratedClass", true), argW.c_str());
+					// prevent collision issues
+					FVector ActorLocation = AActor::GetLocation(Globals::Pawn);
+					ActorLocation.X += 500;
+					if (Class)
+					{
+						SpawnActorEasy(GetWorld(), Class, ActorLocation, FRotator{ 0, 0, 0 });
+						Kismet::Say(L"Actor Spawned!");
+					}
+					else {
+						Kismet::Say(L"Class Not Found!");
+					}
+				}
+
+				return nullptr;
+			}
+
 			return ProcessEvent(Object, Function, Params);
 		}
 	}

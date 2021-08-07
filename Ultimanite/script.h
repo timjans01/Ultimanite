@@ -19,6 +19,11 @@ namespace UScript
 		return;
 	}
 
+	static void eval(std::string code) {
+		duk_eval_string_noresult(Globals::DukContext, code.c_str());
+		return;
+	}
+
 	static void ExecuteStartupScript()
 	{
 		auto content = Util::readAllText(Util::GetRuntimePath() + "\\uscripts\\startup.js");
