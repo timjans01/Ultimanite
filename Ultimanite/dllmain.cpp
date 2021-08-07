@@ -16,9 +16,18 @@ void Setup()
 	auto ConstructObjectAddress = Util::FindPattern(UE_4_20_CONSTRUCTOBJECT);
 	auto FreeAddress = Util::FindPattern(UE_4_20_FREE);
 
-	if (GObjectsAddress && ToStringAddress && GetFirstPlayerControllerAddress && SpawnActorFromClassAddress && LoadObjectAddress && ConstructObjectAddress && FreeAddress)
+	if (GObjectsAddress && ToStringAddress && GetFirstPlayerControllerAddress && SpawnActorFromClassAddress && ConstructObjectAddress && FreeAddress)
 	{
-		CurrentVersion = EEngineVersion::UE_4_20;
+		if (!LoadObjectAddress)
+		{
+			LoadObjectAddress = Util::FindPattern("4C 89 4C 24 ? 48 89 54 24 ? 48 89 4C 24 ? 55 53 56 57 48 8B EC 48 83 EC 78 33 C0");
+			CurrentVersion = EEngineVersion::UE_4_20;
+		}
+		else
+		{
+			CurrentVersion = EEngineVersion::UE_4_20;
+		}
+		
 	}
 
 	// not able to find any version yet, lets try again

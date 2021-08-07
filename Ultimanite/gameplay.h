@@ -316,7 +316,7 @@ namespace Game
 				auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
 				auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
 				auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
-				auto BuildingActor = SpawnActorEasy(Globals::World, CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
+				auto BuildingActor = SpawnActorEasy(GetWorld(), CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
 				Building::InitializeBuildingActor(BuildingActor);
 			}
 
@@ -397,13 +397,16 @@ namespace Game
 
 			if (Object == Globals::Pawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
 			{
-				*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = (Player::IsInVehicle() ? ENetRole::ROLE_AutonomousProxy : ENetRole::ROLE_Authority);
-
-				UObject* Vehicle = Player::GetVehicle();
-
-				if (Vehicle)
+				if (!strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3"))
 				{
-					*reinterpret_cast<ENetRole*>(__int64(Vehicle) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_AutonomousProxy;
+					*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = (Player::IsInVehicle() ? ENetRole::ROLE_AutonomousProxy : ENetRole::ROLE_Authority);
+
+					UObject* Vehicle = Player::GetVehicle();
+
+					if (Vehicle)
+					{
+						*reinterpret_cast<ENetRole*>(__int64(Vehicle) + __int64(Offsets::RoleOffset)) = ENetRole::ROLE_AutonomousProxy;
+					}
 				}
 
 				static bool bHasExecuted;
@@ -425,7 +428,7 @@ namespace Game
 				}
 
 				static bool bHasPressedRButton;
-				if (Building::IsInBuildMode())
+				if (Building::IsInBuildMode() && !strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3"))
 				{
 					Globals::bCanBuild = *reinterpret_cast<bool*>(Globals::BuildingOffset + 0x20);
 					Globals::_bCanBuild = *reinterpret_cast<bool*>(Globals::BuildingOffset + 0x28);
@@ -435,7 +438,7 @@ namespace Game
 						auto CurrentBuildableClass = *reinterpret_cast<UObject**>(__int64(Globals::Controller) + Offsets::CurrentBuildableClassOffset);
 						auto LastPreviewLocation = *reinterpret_cast<FVector*>(__int64(Globals::Controller) + Offsets::LastBuildLocationOffset);
 						auto LastPreviewRotation = *reinterpret_cast<FRotator*>(__int64(Globals::Controller) + Offsets::LastBuildRotationOffset);
-
+						
 						if (BuildingActorLast && LastClass && !Util::IsBadReadPtr(BuildingActorLast) && !Util::IsBadReadPtr(LastClass))
 						{
 							auto CurrentLoc = AActor::GetLocation(BuildingActorLast);
@@ -447,37 +450,11 @@ namespace Game
 								}
 							}
 						}
-
+						
 						auto BuildingActor = SpawnActorEasy(GetWorld(), CurrentBuildableClass, LastPreviewLocation, LastPreviewRotation);
 						BuildingActorLast = BuildingActor;
 						LastClass = CurrentBuildableClass;
 						Building::InitializeBuildingActor(BuildingActor);
-					}
-					else if ((bDroppedLoadingScreen) && GetAsyncKeyState(VK_RBUTTON) && !bHasPressedRButton)
-					{
-						auto BuildPreviewMarker = *(UObject**)(__int64(Globals::Controller) + Offsets::BuildPreviewMarkerOffset);
-						auto bCurrentlyBeingEdited = *(bool*)(__int64(BuildPreviewMarker) + Offsets::CurrentlyBeingEditedOffset);
-						if (!bCurrentlyBeingEdited)
-						{
-							bHasPressedRButton = true;
-							auto CurrentResourceType = *(EFortResourceType*)(__int64(Globals::Controller) + Offsets::CurrentResourceTypeOffset);
-							switch (CurrentResourceType)
-							{
-							case EFortResourceType::Wood:
-								Building::K2_SetCurrentResourceType(Globals::Controller, EFortResourceType::Stone);
-								break;
-							case EFortResourceType::Stone:
-								Building::K2_SetCurrentResourceType(Globals::Controller, EFortResourceType::Metal);
-								break;
-							case EFortResourceType::Metal:
-								Building::K2_SetCurrentResourceType(Globals::Controller, EFortResourceType::Wood);
-								break;
-							}
-						}
-					}
-					else
-					{
-						bHasPressedRButton = false;
 					}
 				}
 			}
@@ -607,6 +584,11 @@ namespace Game
 
 				CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::ExecuteStartupScript), nullptr, 0, nullptr);
 				bDroppedLoadingScreen = true;
+
+				EAthenaGamePhase* CurrentGamePhase = reinterpret_cast<EAthenaGamePhase*>(__int64(Globals::GameState) + __int64(Offsets::GamePhaseOffset));
+				*CurrentGamePhase = EAthenaGamePhase::Aircraft;
+
+				GameState::OnRep_GamePhase(Globals::GameState, EAthenaGamePhase::None);
 			}
 
 			if (wcsstr(FunctionName.c_str(), L"CheatScript"))

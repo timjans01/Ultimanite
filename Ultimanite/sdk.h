@@ -838,6 +838,7 @@ namespace Player
 		UObject* ReturnValue;
 
 		ProcessEvent(Globals::Pawn, GetVehicle, &ReturnValue);
+		
 
 		return ReturnValue;
 	}
@@ -849,6 +850,7 @@ namespace Player
 		bool ReturnValue;
 
 		ProcessEvent(Globals::Pawn, IsInVehicle, &ReturnValue);
+		
 
 		return ReturnValue;
 	}
@@ -1191,7 +1193,16 @@ namespace Inventory
 	{
 		FString CurrentVersion = RuntimeOptions::GetGameVersion();
 
-		if (wcsstr(CurrentVersion.ToWString(), L"v4") || wcsstr(CurrentVersion.ToWString(), L"v5") || wcsstr(CurrentVersion.ToWString(), L"v6"))
+		if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3"))
+		{
+			struct ItemEntrySize
+			{
+				unsigned char Unk00[0xC0];
+			};
+			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
+			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
+		}
+		else if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "4") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "5") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6"))
 		{
 			struct ItemEntrySize
 			{
@@ -1200,7 +1211,7 @@ namespace Inventory
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
 			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
-		else if (wcsstr(CurrentVersion.ToWString(), L"v7") || wcsstr(CurrentVersion.ToWString(), L"v8"))
+		else if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8"))
 		{
 			struct ItemEntrySize
 			{
