@@ -266,7 +266,8 @@ namespace Game
 			auto ObjectName = Object->GetFullName();
 			auto FunctionName = Function->GetFullName();
 
-			if (Function->GetName().find(L"BP_PlayButton") != std::wstring::npos)
+			if (wcsstr(FunctionName.c_str(), L"OnSetPlayButtonText") ||
+				Function->GetName().find(L"BP_PlayButton") != std::wstring::npos)
 			{
 				if (!bIsStarted)
 				{
