@@ -1189,6 +1189,25 @@ namespace Inventory
 	{
 	}
 
+	static void ServerAddItemInternal(UObject* Quickbars, FGuid Item, EFortQuickBars Quickbar, int Slot)
+	{
+		static UObject* ServerAddItemInternal = FindObject(L"Function /Script/FortniteGame.FortQuickBars.ServerAddItemInternal");
+
+		struct
+		{
+			FGuid Item;
+			EFortQuickBars Quickbar;
+			int Slot;
+		} Params;
+
+		Params.Item = Item;
+		Params.Quickbar = Quickbar;
+		Params.Slot = Slot;
+
+		ProcessEvent(Quickbars, ServerAddItemInternal, &Params);
+	}
+
+
 	static void AddItemToInventory(UObject* FortItem, EFortQuickBars QuickbarIndex, int Slot)
 	{
 		FString CurrentVersion = RuntimeOptions::GetGameVersion();
@@ -1223,7 +1242,11 @@ namespace Inventory
 
 		reinterpret_cast<TArray<UObject*>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemInstancesOffset))->Add(FortItem);
 
-		Player::AddItemToQuickBars(Player::GetItemDefinition(FortItem), QuickbarIndex, Slot);
+		if (7.4 > std::stof(RuntimeOptions::GetFortniteVersion()))
+		{
+			ServerAddItemInternal(Globals::Quickbar, Player::GetGuid(FortItem), QuickbarIndex, Slot);
+		}
+		
 	}
 
 	static void AddItemToInventoryWithUpdate(UObject* ItemDef, EFortQuickBars QuickbarIndex, int Slot, int Count)

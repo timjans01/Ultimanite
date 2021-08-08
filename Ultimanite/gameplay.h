@@ -38,7 +38,15 @@ namespace Game
 			if (IsMatchingGuid(Player::GetGuid(CurrentItemInstance), Guid))
 			{
 				// if the GUIDs match, equip the weapon
-				Player::EquipWeaponByDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
+				if (!7.4 <= std::stof(RuntimeOptions::GetFortniteVersion()))
+				{
+					Player::EquipWeaponByDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
+				}
+				else
+				{
+					Player::EquipWeaponDefinition(Globals::Pawn, Player::GetItemDefinition(CurrentItemInstance), Guid);
+				}
+				
 			}
 		}
 	}
