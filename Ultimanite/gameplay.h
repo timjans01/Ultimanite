@@ -224,16 +224,16 @@ namespace Game
 		}
 
 		//SHOWING HIDDEN POIs
-		if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6"))
+		if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6."))
 		{
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_15x15_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_FloatingIsland"), EDynamicFoundationType::Static);
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_75x75_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Lake1"), EDynamicFoundationType::Static);
 		}
-		if ((strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7")))
+		if ((strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7.")))
 		{
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_25x25_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_25x36"), EDynamicFoundationType::Static);
 		}
-		if ((strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8")))
+		if ((strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8.")))
 		{
 			Player::ShowBuildingFoundation(FindObject(L"LF_Athena_POI_50x50_C /Game/Athena/Maps/Athena_POI_Foundations.Athena_POI_Foundations.PersistentLevel.LF_Athena_POI_50x53_Volcano"), EDynamicFoundationType::Static);
 		}
@@ -398,7 +398,7 @@ namespace Game
 
 			if (Object == Globals::Pawn && wcsstr(FunctionName.c_str(), L"Tick") && bDroppedLoadingScreen)
 			{
-				if (!strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3"))
+				if (!strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3."))
 				{
 					*reinterpret_cast<ENetRole*>(__int64(Globals::Pawn) + __int64(Offsets::RoleOffset)) = (Player::IsInVehicle() ? ENetRole::ROLE_AutonomousProxy : ENetRole::ROLE_Authority);
 
@@ -429,7 +429,7 @@ namespace Game
 				}
 
 				static bool bHasPressedRButton;
-				if (Building::IsInBuildMode() && !strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3"))
+				if (Building::IsInBuildMode() && !strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3."))
 				{
 					Globals::bCanBuild = *reinterpret_cast<bool*>(Globals::BuildingOffset + 0x20);
 					Globals::_bCanBuild = *reinterpret_cast<bool*>(Globals::BuildingOffset + 0x28);
@@ -576,12 +576,11 @@ namespace Game
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/WoodItemData.WoodItemData"), EFortQuickBars::Secondary, 0, 999);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/StoneItemData.StoneItemData"), EFortQuickBars::Secondary, 0, 999);
 				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortResourceItemDefinition /Game/Items/ResourcePickups/MetalItemData.MetalItemData"), EFortQuickBars::Secondary, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Athena/Items/Ammo/AmmoDataRockets.AmmoDataRockets"), EFortQuickBars::Secondary, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataShells.AmmoDataShells"), EFortQuickBars::Secondary, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataBulletsMedium.AmmoDataBulletsMedium"), EFortQuickBars::Secondary, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataBulletsLight.AmmoDataBulletsLight"), EFortQuickBars::Secondary, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoDataBulletsHeavy.AmmoDataBulletsHeavy"), EFortQuickBars::Secondary, 0, 999);
-				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AmmoInfinite.AmmoInfinite"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Athena/Items/Ammo/AthenaAmmoDataRockets.AthenaAmmoDataRockets"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AthenaAmmoDataShells.AthenaAmmoDataShells"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AthenaAmmoDataBulletsMedium.AthenaAmmoDataBulletsMedium"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AthenaAmmoDataBulletsLight.AthenaAmmoDataBulletsLight"), EFortQuickBars::Secondary, 0, 999);
+				Inventory::AddItemToInventoryWithUpdate(FindObject(L"FortAmmoItemDefinition /Game/Items/Ammo/AthenaAmmoDataBulletsHeavy.AthenaAmmoDataBulletsHeavy"), EFortQuickBars::Secondary, 0, 999);
 
 				CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&UScript::ExecuteStartupScript), nullptr, 0, nullptr);
 				bDroppedLoadingScreen = true;

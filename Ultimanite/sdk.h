@@ -1193,7 +1193,7 @@ namespace Inventory
 	{
 		FString CurrentVersion = RuntimeOptions::GetGameVersion();
 
-		if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3"))
+		if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "3."))
 		{
 			struct ItemEntrySize
 			{
@@ -1202,7 +1202,7 @@ namespace Inventory
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
 			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
-		else if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "4") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "5") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6"))
+		else if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "4.") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "5.") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "6."))
 		{
 			struct ItemEntrySize
 			{
@@ -1211,7 +1211,7 @@ namespace Inventory
 			auto ItemEntry = reinterpret_cast<ItemEntrySize*>(reinterpret_cast<uintptr_t>(FortItem) + Offsets::ItemEntryOffset);
 			reinterpret_cast<TArray<ItemEntrySize>*>(__int64(Globals::FortInventory) + static_cast<__int64>(Offsets::InventoryOffset) + static_cast<__int64>(Offsets::ItemEntriesOffset))->Add(*ItemEntry);
 		}
-		else if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8"))
+		else if (strstr(RuntimeOptions::GetFortniteVersion().c_str(), "7.") || strstr(RuntimeOptions::GetFortniteVersion().c_str(), "8."))
 		{
 			struct ItemEntrySize
 			{
